@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMQ Plumbers & Renovations - Your Trusted Service Provider</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           DMQ PLUMBERS & RENOVATIONS - STYLES
+           Color Scheme: Blue (#003D82) & Yellow (#FFD700)
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #003D82;
+            --dark-blue: #002347;
+            --bright-yellow: #FFD700;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --white: #FFFFFF;
+            --text-gray: #666666;
+            --border-color: #E0E0E0;
+            --success-green: #27AE60;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-gray);
+            line-height: 1.6;
+            background-color: var(--white);
+        }
+
+        /* ============================================
+           NAVIGATION BAR
+           ============================================ */
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            color: var(--white);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-logo i {
+            color: var(--bright-yellow);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease, border-bottom 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.5rem;
+        }
+
+        .nav-link:hover {
+            color: var(--bright-yellow);
+            border-bottom: 2px solid var(--bright-yellow);
+        }
+
+        .nav-cta {
+            background-color: var(--bright-yellow);
+            color: var(--dark-blue);
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            border: none;
+        }
+
+        .nav-cta:hover {
+            color: var(--dark-blue);
+            border-bottom: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 5px 0;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            color: var(--white);
+            padding: 6rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+            z-index: 2;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            animation: slideInLeft 0.8s ease;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--bright-yellow);
+            font-weight: 600;
+            animation: slideInLeft 0.8s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            animation: slideInLeft 0.8s ease 0.4s both;
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image-placeholder {
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            color: var(--bright-yellow);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.8s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+
+        .btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bright-yellow) 0%, #FFC700 100%);
+            color: var(--primary-blue);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--primary-blue);
+            border: 2px solid var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+            transform: translateY(-3px);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: var(--white);
+        }
+
+        .btn-whatsapp:hover {
+            background: #1EBE56;
+            transform: translateY(-3px);
+        }
+
+        /* ============================================
+           FEATURES BAR
+           ============================================ */
+
+        .features-bar {
+            background-color: var(--light-gray);
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: -2rem auto 0;
+            border-radius: 15px 15px 0 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: left;
+        }
+
+        .feature-item i {
+            font-size: 2.5rem;
+            color: var(--bright-yellow);
+            background: var(--primary-blue);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-item span {
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        /* ============================================
+           SECTION HEADERS
+           ============================================ */
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ============================================
+           SERVICES SECTION
+           ============================================ */
+
+        .services {
+            padding: 4rem 2rem;
+            background-color: var(--white);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            border-color: var(--bright-yellow);
+            box-shadow: 0 10px 30px rgba(0, 61, 130, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .service-icon {
+            font-size: 3.5rem;
+            color: var(--bright-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .service-card h3 {
+            font-size: 1.3rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .service-card p {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-btn {
+            color: var(--primary-blue);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .service-btn:hover {
+            color: var(--bright-yellow);
+        }
+
+        /* ============================================
+           PROJECTS SECTION
+           ============================================ */
+
+        .projects {
+            padding: 4rem 2rem;
+            background-color: var(--light-gray);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .projects-carousel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .projects-container {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            flex: 1;
+            padding: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bright-yellow) transparent;
+        }
+
+        .projects-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .projects-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .projects-container::-webkit-scrollbar-thumb {
+            background: var(--bright-yellow);
+            border-radius: 10px;
+        }
+
+        .project-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            min-width: 350px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 61, 130, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--bright-yellow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-category {
+            display: inline-block;
+            background-color: var(--bright-yellow);
+            color: var(--primary-blue);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .project-description {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .project-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .completion-year {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .project-rating {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .project-rating i {
+            color: var(--bright-yellow);
+            font-size: 0.9rem;
+        }
+
+        .carousel-btn {
+            background: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .carousel-btn:hover {
+            background: var(--bright-yellow);
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        .carousel-btn.prev {
+            order: -1;
+        }
+
+        /* ============================================
+           TESTIMONIALS SECTION
+           ============================================ */
+
+        .testimonials {
+            padding: 4rem 2rem;
+            background-color: var(--white);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonials-carousel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .testimonials-container {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            flex: 1;
+            padding: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bright-yellow) transparent;
+        }
+
+        .testimonials-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .testimonials-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .testimonials-container::-webkit-scrollbar-thumb {
+            background: var(--bright-yellow);
+            border-radius: 10px;
+        }
+
+        .testimonial-card {
+            background: linear-gradient(135deg, var(--light-gray) 0%, var(--white) 100%);
+            border-left: 5px solid var(--bright-yellow);
+            border-radius: 8px;
+            padding: 2rem;
+            min-width: 350px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 61, 130, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--bright-yellow) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .testimonial-info h4 {
+            color: var(--primary-blue);
+            margin-bottom: 0.2rem;
+        }
+
+        .testimonial-rating {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .testimonial-rating i {
+            color: var(--bright-yellow);
+            font-size: 0.9rem;
+        }
+
+        .testimonial-text {
+            color: var(--text-gray);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           WHATSAPP SECTION
+           ============================================ */
+
+        .whatsapp-section {
+            background: linear-gradient(135deg, #25D366 0%, #1EBE56 100%);
+            color: var(--white);
+            padding: 4rem 2rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 3rem auto;
+            border-radius: 15px;
+        }
+
+        .whatsapp-content {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .whatsapp-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .whatsapp-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .whatsapp-section p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .whatsapp-info {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        /* ============================================
+           QUOTATION SECTION
+           ============================================ */
+
+        .quotation-section {
+            padding: 4rem 2rem;
+            background-color: var(--light-gray);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .quotation-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .quotation-form-wrapper {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .quotation-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.8rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--bright-yellow);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
+
+        .quotation-info {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 8px;
+        }
+
+        .quotation-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--bright-yellow);
+        }
+
+        .quotation-info ul {
+            list-style: none;
+        }
+
+        .quotation-info li {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .quotation-info i {
+            color: var(--bright-yellow);
+            font-size: 1.2rem;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--bright-yellow);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-section p {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--white);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--bright-yellow);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background-color: var(--bright-yellow);
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+
+        /* ============================================
+           MODAL
+           ============================================ */
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: var(--text-gray);
+            float: right;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 1rem 1.5rem 0 0;
+        }
+
+        .close:hover {
+            color: var(--primary-blue);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .modal-body i {
+            font-size: 3.5rem;
+            color: var(--success-green);
+            margin-bottom: 1rem;
+        }
+
+        .modal-body h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .modal-body p {
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .modal-info {
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero {
+                flex-direction: column;
+                padding: 3rem 2rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-image-placeholder {
+                width: 200px;
+                height: 200px;
+                font-size: 5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .features-bar {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin: -1rem 2rem 0;
+            }
+
+            .section-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-card {
+                min-width: 100%;
+            }
+
+            .testimonial-card {
+                min-width: 100%;
+            }
+
+            .quotation-form-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .hero-content h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .section-header p {
+                font-size: 0.95rem;
+            }
+
+            .carousel-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .project-card {
+                min-width: calc(100% - 2rem);
+            }
+
+            .testimonial-card {
+                min-width: calc(100% - 2rem);
+            }
+
+            .quotation-form-wrapper {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-wrench"></i>
+                <span>DMQ Plumbers</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#services" class="nav-link">Services</a></li>
+                <li><a href="#projects" class="nav-link">Projects</a></li>
+                <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+                <li><a href="#quotation" class="nav-link nav-cta">Request Quote</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Your Trusted Plumbing & Renovations Services</h1>
+            <p>Elevating Quality in Plumbing & Renovations</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="scrollToSection('quotation')">Request Quotation</button>
+                <button class="btn btn-secondary" onclick="openWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                </button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="hero-image-placeholder">
+                <i class="fas fa-home"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-bar">
+        <div class="feature-item">
+            <i class="fas fa-user-tie"></i>
+            <span>Experienced Professionals</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-star"></i>
+            <span>Customer Satisfaction</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-tag"></i>
+            <span>Affordable Pricing</span>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="section-header">
+            <h2>Our Services</h2>
+            <p>Professional plumbing and renovation solutions tailored to your needs</p>
+        </div>
+        <div class="services-grid" id="servicesContainer">
+            <!-- Services will be loaded here dynamically -->
+        </div>
+    </section>
+
+    <!-- Previous Projects Section -->
+    <section id="projects" class="projects">
+        <div class="section-header">
+            <h2>Our Previous Projects</h2>
+            <p>Browse through our completed projects and see the quality of our work</p>
+        </div>
+        
+        <div class="projects-carousel">
+            <button class="carousel-btn prev" onclick="scrollProjects('left')">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="projects-container" id="projectsContainer">
+                <!-- Projects will be loaded here dynamically -->
+            </div>
+            
+            <button class="carousel-btn next" onclick="scrollProjects('right')">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="section-header">
+            <h2>Client Testimonials</h2>
+            <p>What our satisfied clients have to say about our services</p>
+        </div>
+        
+        <div class="testimonials-carousel">
+            <button class="carousel-btn prev" onclick="scrollTestimonials('left')">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="testimonials-container" id="testimonialsContainer">
+                <!-- Testimonials will be loaded here dynamically -->
+            </div>
+            
+            <button class="carousel-btn next" onclick="scrollTestimonials('right')">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- WhatsApp Section -->
+    <section id="contact" class="whatsapp-section">
+        <div class="whatsapp-content">
+            <div class="whatsapp-icon">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <h2>Need Help? Chat With Us!</h2>
+            <p>Get instant support and answers to your questions</p>
+            <button class="btn btn-whatsapp" onclick="openWhatsApp()">
+                <i class="fab fa-whatsapp"></i> Open WhatsApp
+            </button>
+            <p class="whatsapp-info">+27-71-932-8617</p>
+        </div>
+    </section>
+
+    <!-- Request Quotation Section -->
+    <section id="quotation" class="quotation-section">
+        <div class="section-header">
+            <h2>Request Your Quotation</h2>
+            <p>Get a personalized quote for your project</p>
+        </div>
+        
+        <div class="quotation-container">
+            <div class="quotation-form-wrapper">
+                <form id="quotationForm" class="quotation-form">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+27 XXX XXX XXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service">Select Service *</label>
+                        <select id="service" name="service" required>
+                            <option value="">Choose a service...</option>
+                            <option value="plumbing">All Plumbing</option>
+                            <option value="renovations">Renovations</option>
+                            <option value="repairs">Repairs</option>
+                            <option value="installation">Installation</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Project Location *</label>
+                        <input type="text" id="location" name="location" required placeholder="Street address and area">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Project Description *</label>
+                        <textarea id="description" name="description" rows="5" required placeholder="Describe your project in detail..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget">Estimated Budget</label>
+                        <input type="text" id="budget" name="budget" placeholder="e.g., R5000 - R10000">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Quotation Request
+                    </button>
+                </form>
+
+                <div class="quotation-info">
+                    <h3>Why Request a Quotation?</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Transparent pricing</li>
+                        <li><i class="fas fa-check"></i> Customized solutions</li>
+                        <li><i class="fas fa-check"></i> No hidden charges</li>
+                        <li><i class="fas fa-check"></i> Quick response time</li>
+                        <li><i class="fas fa-check"></i> Professional consultation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>DMQ Plumbers & Renovations</h4>
+                <p>Elevating Quality in Plumbing & Renovations</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#services">All Plumbing</a></li>
+                    <li><a href="#services">Renovations</a></li>
+                    <li><a href="#services">Emergency Repairs</a></li>
+                    <li><a href="#services">Installation</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p><i class="fas fa-map-marker-alt"></i> 29 Knight Rd, Turffontein, Johannesburg South, 2190</p>
+                <p><i class="fas fa-phone"></i> +27-71-932-8617</p>
+                <p><i class="fas fa-envelope"></i> dumisanicanfix@gmail.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 DMQ Plumbers & Renovations. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-body">
+                <i class="fas fa-check-circle"></i>
+                <h2>Quotation Request Received!</h2>
+                <p>Thank you for your quotation request. Our team will review it and contact you shortly.</p>
+                <p class="modal-info">We'll get back to you within 24 hours.</p>
+                <button class="btn btn-primary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // MOCK DATA - In production, this will come from API
+        // ============================================
+
+        const servicesData = [
+            {
+                id: 1,
+                name: "All Plumbing",
+                icon: "fas fa-pipes",
+                description: "Complete plumbing solutions including repairs, installations, and maintenance"
+            },
+            {
+                id: 2,
+                name: "New Geysers",
+                icon: "fas fa-temperature-high",
+                description: "Professional installation and replacement of water heating systems"
+            },
+            {
+                id: 3,
+                name: "All Leaks",
+                icon: "fas fa-droplet",
+                description: "Expert detection and repair of water leaks from any source"
+            },
+            {
+                id: 4,
+                name: "Leak Detection",
+                icon: "fas fa-search",
+                description: "Advanced technology to locate hidden leaks without damage"
+            },
+            {
+                id: 5,
+                name: "Unblock Drains",
+                icon: "fas fa-wind",
+                description: "Fast and effective drain clearing services for all types of blockages"
+            },
+            {
+                id: 6,
+                name: "Bathroom Renovation",
+                icon: "fas fa-bath",
+                description: "Transform your bathroom with modern designs and quality installations"
+            }
+        ];
+
+        const projectsData = [
+            {
+                id: 1,
+                name: "Modern Bathroom Renovation",
+                location: "Johannesburg",
+                category: "Renovations",
+                completionYear: 2023,
+                description: "Complete bathroom remodeling with new fixtures and tiling",
+                rating: 5,
+                comments: [
+                    { author: "John Doe", text: "Excellent work! Very professional team.", rating: 5 },
+                    { author: "Sarah Smith", text: "Fast service and great quality. Highly recommended!", rating: 5 }
+                ]
+            },
+            {
+                id: 2,
+                name: "Kitchen Pipe Installation",
+                location: "Sandton",
+                category: "Installation",
+                completionYear: 2023,
+                description: "Complete kitchen plumbing system upgrade",
+                rating: 4.5,
+                comments: [
+                    { author: "Mike Johnson", text: "Professional and efficient. Great team!", rating: 4 }
+                ]
+            },
+            {
+                id: 3,
+                name: "Emergency Leak Repair",
+                location: "Midrand",
+                category: "Repairs",
+                completionYear: 2024,
+                description: "Swift response to major water leak emergency",
+                rating: 5,
+                comments: [
+                    { author: "Emma Wilson", text: "They arrived quickly and fixed the problem immediately!", rating: 5 },
+                    { author: "David Lee", text: "Saved us from water damage. Thank you!", rating: 5 }
+                ]
+            },
+            {
+                id: 4,
+                name: "Full House Plumbing System",
+                location: "Bryanston",
+                category: "Installation",
+                completionYear: 2022,
+                description: "Complete plumbing system installation for new house",
+                rating: 5,
+                comments: [
+                    { author: "Rachel Brown", text: "Outstanding craftsmanship and attention to detail!", rating: 5 }
+                ]
+            },
+            {
+                id: 5,
+                name: "Drain Clearing Service",
+                location: "Bedfordview",
+                category: "Repairs",
+                completionYear: 2024,
+                description: "Professional drain unblocking using advanced equipment",
+                rating: 4,
+                comments: [
+                    { author: "James Anderson", text: "Quick service at a fair price.", rating: 4 }
+                ]
+            }
+        ];
+
+        const testimonialsData = [
+            {
+                id: 1,
+                name: "Alice Johnson",
+                initials: "AJ",
+                rating: 5,
+                text: "DMQ Plumbers provided exceptional service! They were professional, punctual, and delivered outstanding results. Highly recommended!"
+            },
+            {
+                id: 2,
+                name: "Robert Smith",
+                initials: "RS",
+                rating: 5,
+                text: "The team was incredibly responsive to my emergency call. They arrived quickly and resolved the issue efficiently. Great company!"
+            },
+            {
+                id: 3,
+                name: "Maria Garcia",
+                initials: "MG",
+                rating: 5,
+                text: "Excellent renovation work! My bathroom looks fantastic. The attention to detail was impressive and the team was very respectful."
+            },
+            {
+                id: 4,
+                name: "David Chen",
+                initials: "DC",
+                rating: 4,
+                text: "Professional service with fair pricing. They explained everything clearly and completed the work on time. Would use again!"
+            },
+            {
+                id: 5,
+                name: "Sophie Williams",
+                initials: "SW",
+                rating: 5,
+                text: "Outstanding customer service! They answered all my questions and provided valuable recommendations. Truly impressed!"
+            },
+            {
+                id: 6,
+                name: "Michael Brown",
+                initials: "MB",
+                rating: 5,
+                text: "Best plumbing service in Johannesburg. They fixed a complex leak issue that other companies couldn't handle. Very satisfied!"
+            }
+        ];
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadServices();
+            loadProjects();
+            loadTestimonials();
+            setupFormListener();
+            setupMobileMenu();
+        });
+
+        // ============================================
+        // LOAD SERVICES
+        // ============================================
+
+        function loadServices() {
+            const container = document.getElementById('servicesContainer');
+            container.innerHTML = '';
+
+            servicesData.forEach(service => {
+                const serviceCard = document.createElement('div');
+                serviceCard.className = 'service-card';
+                serviceCard.innerHTML = `
+                    <div class="service-icon">
+                        <i class="${service.icon}"></i>
+                    </div>
+                    <h3>${service.name}</h3>
+                    <p>${service.description}</p>
+                    <a href="#quotation" class="service-btn" onclick="scrollToSection('quotation')">
+                        <span>Get Quote</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                `;
+                container.appendChild(serviceCard);
+            });
+        }
+
+        // ============================================
+        // LOAD PROJECTS
+        // ============================================
+
+        function loadProjects() {
+            const container = document.getElementById('projectsContainer');
+            container.innerHTML = '';
+
+            projectsData.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card';
+                
+                const ratingStars = generateStars(project.rating);
+                
+                projectCard.innerHTML = `
+                    <div class="project-image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="project-content">
+                        <span class="project-category">${project.category}</span>
+                        <h3 class="project-title">${project.name}</h3>
+                        <p class="project-description">${project.description}</p>
+                        <div class="project-footer">
+                            <span class="completion-year">${project.completionYear}</span>
+                            <div class="project-rating">
+                                ${ratingStars}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(projectCard);
+            });
+        }
+
+        // ============================================
+        // LOAD TESTIMONIALS
+        // ============================================
+
+        function loadTestimonials() {
+            const container = document.getElementById('testimonialsContainer');
+            container.innerHTML = '';
+
+            testimonialsData.forEach(testimonial => {
+                const ratingStars = generateStars(testimonial.rating);
+                
+                const testimonialCard = document.createElement('div');
+                testimonialCard.className = 'testimonial-card';
+                testimonialCard.innerHTML = `
+                    <div class="testimonial-header">
+                        <div class="testimonial-avatar">${testimonial.initials}</div>
+                        <div class="testimonial-info">
+                            <h4>${testimonial.name}</h4>
+                            <div class="testimonial-rating">
+                                ${ratingStars}
+                            </div>
+                        </div>
+                    </div>
+                    <p class="testimonial-text">"${testimonial.text}"</p>
+                `;
+                container.appendChild(testimonialCard);
+            });
+        }
+
+        // ============================================
+        // GENERATE STAR RATING
+        // ============================================
+
+        function generateStars(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        // ============================================
+        // CAROUSEL FUNCTIONS
+        // ============================================
+
+        function scrollProjects(direction) {
+            scrollCarousel('projectsContainer', direction);
+        }
+
+        function scrollTestimonials(direction) {
+            scrollCarousel('testimonialsContainer', direction);
+        }
+
+        function scrollCarousel(containerId, direction) {
+            const container = document.getElementById(containerId);
+            const scrollAmount = 400;
+            
+            if (direction === 'left') {
+                container.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else {
+                container.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // ============================================
+        // FORM HANDLING
+        // ============================================
+
+        function setupFormListener() {
+            const form = document.getElementById('quotationForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitQuotationForm();
+            });
+        }
+
+        function submitQuotationForm() {
+            const form = document.getElementById('quotationForm');
+            
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                service: document.getElementById('service').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                budget: document.getElementById('budget').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Log to console (in production, send to backend API)
+            console.log('Quotation Request:', formData);
+            
+            // Save to localStorage for demo purposes
+            let quotations = JSON.parse(localStorage.getItem('quotations')) || [];
+            quotations.push(formData);
+            localStorage.setItem('quotations', JSON.stringify(quotations));
+            
+            // Show success message
+            showSuccessModal();
+            
+            // Reset form
+            form.reset();
+        }
+
+        // ============================================
+        // MODAL FUNCTIONS
+        // ============================================
+
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('successModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // ============================================
+        // WHATSAPP FUNCTION
+        // ============================================
+
+        function openWhatsApp() {
+            const phoneNumber = '27719328617';
+            const message = 'Hi! I am interested in your plumbing and renovation services.';
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // ============================================
+        // SCROLL TO SECTION
+        // ============================================
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // ============================================
+        // MOBILE MENU
+        // ============================================
+
+        function setupMobileMenu() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (hamburger) {
+                hamburger.addEventListener('click', function() {
+                    navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+                    navMenu.style.position = 'absolute';
+                    navMenu.style.top = '70px';
+                    navMenu.style.left = '0';
+                    navMenu.style.right = '0';
+                    navMenu.style.width = '100%';
+                    navMenu.style.flexDirection = 'column';
+                    navMenu.style.backgroundColor = '#003D82';
+                    navMenu.style.padding = '1rem';
+                    navMenu.style.gap = '1rem';
+                    navMenu.style.zIndex = '999';
+                });
+            }
+            
+            // Close menu when clicking on a link
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (navMenu) {
+                        navMenu.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Add animation to elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe service cards
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
