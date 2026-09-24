@@ -52,6 +52,7 @@ public class ProjectStage {
 
     // Relationships
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<ProjectImage> images = new HashSet<>();
 
     @PrePersist

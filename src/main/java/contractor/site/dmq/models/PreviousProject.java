@@ -47,9 +47,11 @@ public class PreviousProject {
 
     // Relationships
     @OneToMany(mappedBy = "previousProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<PreviousProjectImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "previousProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<PreviousProjectComment> comments = new HashSet<>();
 
     @PrePersist

@@ -53,18 +53,23 @@ public class Client {
 
     // Relationships
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Project> projects = new HashSet<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Quotation> quotations = new HashSet<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Testimonial> testimonials = new HashSet<>();
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<PreviousProjectComment> comments = new HashSet<>();
 
     @PrePersist

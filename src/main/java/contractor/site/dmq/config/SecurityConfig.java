@@ -22,7 +22,7 @@ public class SecurityConfig {
         http
             // Disable CSRF for API endpoints (enable for form submissions)
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")
+                .ignoringRequestMatchers("/api/**", "/admin/create-account")
             )
             
             // Authorization configuration
@@ -39,7 +39,8 @@ public class SecurityConfig {
                     "/favicon.ico",
                     "/assets/**",
                     "/uploads/**",
-                    "/static/**"
+                    "/static/**",
+                    "/error"
                 ).permitAll()
                 
                 // Allow public access to read-only API endpoints
@@ -57,6 +58,10 @@ public class SecurityConfig {
                 // Allow public quotation submission
                 .requestMatchers("/api/quotations").permitAll()
                 
+                // Allow public admin account creation (must come before /admin/**)
+                .requestMatchers("/admin/create-account").permitAll()
+                .requestMatchers("/api/admin/account/register", "/api/admin/account/verify").permitAll()
+
                 // Require authentication for admin endpoints
                 .requestMatchers("/api/admin/**").authenticated()
                 .requestMatchers("/admin/**").authenticated()

@@ -56,6 +56,7 @@ public class Quotation {
 
     // Relationships
     @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<QuotationItem> items = new HashSet<>();
 
     @OneToOne(mappedBy = "quotation", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

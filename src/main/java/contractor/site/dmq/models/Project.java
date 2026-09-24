@@ -63,6 +63,7 @@ public class Project {
 
     // Relationships
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<ProjectStage> stages = new HashSet<>();
 
     @PrePersist

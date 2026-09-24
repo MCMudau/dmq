@@ -50,5 +50,6 @@ public class QuotationItem {
 
     // Relationships
     @OneToMany(mappedBy = "quotationItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<QuotationItemImage> images = new HashSet<>();
 }
