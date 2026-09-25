@@ -103,6 +103,37 @@ public class EmailService {
         sendToAdmin(admin, "Your admin account is now active", layout("Account verified", content));
     }
 
+        /** To the ADMIN: the PIN needed to reset their password. Expires in 5 minutes. */
+    public void sendPasswordResetPin(Admin admin) {
+        String content = """
+            <p>Hi {{name}},</p>
+            <p>We received a request to reset the password for your DMQ Plumbers &amp; Renovations
+               administrator account.</p>
+            <p style="margin:20px 0 6px;">Your password reset PIN:</p>
+            <div style="font-size:30px;font-weight:700;letter-spacing:8px;background:#eef3fb;border:2px dashed #0a63c9;
+                        border-radius:8px;padding:14px;text-align:center;color:#002f87;">{{pin}}</div>
+            <p style="margin-top:20px;">This PIN expires in <b>5 minutes</b>.</p>
+            <p style="color:#5b6577;font-size:13px;">If you did not request a password reset, you can safely
+               ignore this email; your password will not be changed.</p>
+            """
+            .replace("{{name}}", esc(admin.getName()))
+            .replace("{{pin}}", esc(admin.getPasswordResetPin()));
+
+        sendToAdmin(admin, "Your password reset PIN", layout("Password reset requested", content));
+    }
+
+    /** To the ADMIN: confirmation that the password was actually changed. */
+    public void sendPasswordResetConfirmation(Admin admin) {
+        String content = """
+            <p>Hi {{name}},</p>
+            <p>Your administrator account password was just changed.</p>
+            <p style="color:#5b6577;font-size:13px;">If this wasn't you, please contact the owner immediately.</p>
+            """
+            .replace("{{name}}", esc(admin.getName()));
+
+        sendToAdmin(admin, "Your password has been changed", layout("Password changed", content));
+    }
+
     // ------------------------------------------------------------------
     // Generic helpers (reusable for other features)
     // ------------------------------------------------------------------

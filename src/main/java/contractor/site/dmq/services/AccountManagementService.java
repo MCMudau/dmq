@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -18,10 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import contractor.site.dmq.dtos.AccountDtos.AccountResponse;
+import contractor.site.dmq.dtos.AccountDtos.ConfirmPasswordResetRequest;
 import contractor.site.dmq.dtos.AccountDtos.LoginRequest;
+import contractor.site.dmq.dtos.AccountDtos.PasswordResetResponse;
 import contractor.site.dmq.dtos.AccountDtos.RegisterAdminRequest;
+import contractor.site.dmq.dtos.AccountDtos.RequestPasswordResetRequest;
 import contractor.site.dmq.dtos.AccountDtos.Status;
 import contractor.site.dmq.dtos.AccountDtos.VerifyAdminRequest;
+import contractor.site.dmq.dtos.AccountDtos.VerifyResetPinRequest;
 import contractor.site.dmq.models.Admin;
 import contractor.site.dmq.repos.AdminRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +58,7 @@ public class AccountManagementService {
     private static final Duration LOCKOUT = Duration.ofMinutes(15);
         // Burns the same time as a real check when the email doesn't exist, so response
     // time can't be used to discover which emails are registered.
+    private static final Duration RESET_PIN_VALIDITY = Duration.ofMinutes(5);
     private static final String DUMMY_HASH = new BCryptPasswordEncoder().encode("not-a-real-password");
 
     private final AdminRepository adminRepository;
@@ -230,6 +236,174 @@ public class AccountManagementService {
         log.info("Admin {} logged in", email);
         return AccountResponse.of(Status.LOGIN_SUCCESS, "Welcome back, " + admin.getName() + ".");
     }
+        // ------------------------------------------------------------------
+    // Password reset
+    // ------------------------------------------------------------------
+
+    /** Called when the admin clicks "Send Reset PIN". Reuses an active PIN instead of spamming a new email. */
+    @Transactional
+    public PasswordResetResponse requestPasswordReset(RequestPasswordResetRequest req) {
+        String email = normaliseEmail(req == null ? null : req.email());
+        if (!EMAIL.matcher(email).matches()) {
+            return PasswordResetResponse.of(Status.VALIDATION_ERROR, "Enter a valid email address.");
+        }
+
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        if (found.isEmpty()) {
+            return PasswordResetResponse.of(Status.RESET_EMAIL_NOT_FOUND,
+                    "No admin account was found with that email address.");
+        }
+
+        Admin admin = found.get();
+        clearExpiredResetPin(admin);
+
+        if (admin.getPasswordResetPin() != null) {
+            return PasswordResetResponse.withSeconds(Status.RESET_PIN_ACTIVE,
+                    "You already have an active reset PIN. Check your email, or use Resend PIN.",
+                    secondsUntil(admin.getPasswordResetPinExpiresAt()));
+        }
+        return issueNewResetPin(admin, "A verification PIN has been sent to your email.");
+    }
+
+    /**
+     * Read-only check used whenever the admin (re)enters their email, e.g. on blur. Never
+     * sends an email; only reports whether a pending PIN period is already running.
+     */
+    @Transactional
+    public PasswordResetResponse checkResetStatus(String rawEmail) {
+        String email = normaliseEmail(rawEmail);
+        if (!EMAIL.matcher(email).matches()) {
+            return PasswordResetResponse.of(Status.VALIDATION_ERROR, "Enter a valid email address.");
+        }
+
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        if (found.isEmpty()) {
+            return PasswordResetResponse.of(Status.RESET_EMAIL_NOT_FOUND,
+                    "No admin account was found with that email address.");
+        }
+
+        Admin admin = found.get();
+        clearExpiredResetPin(admin);
+
+        if (admin.getPasswordResetPin() == null) {
+            return PasswordResetResponse.of(Status.RESET_PIN_NONE, "No reset PIN is currently pending.");
+        }
+        return PasswordResetResponse.withSeconds(Status.RESET_PIN_ACTIVE,
+                "A reset PIN is still active for this email.", secondsUntil(admin.getPasswordResetPinExpiresAt()));
+    }
+
+    /** Called from "Resend PIN" inside the modal. Always issues a fresh PIN, unlike requestPasswordReset. */
+    @Transactional
+    public PasswordResetResponse resendResetPin(String rawEmail) {
+        String email = normaliseEmail(rawEmail);
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        if (found.isEmpty()) {
+            return PasswordResetResponse.of(Status.RESET_EMAIL_NOT_FOUND,
+                    "No admin account was found with that email address.");
+        }
+        pinAttempts.remove("reset:" + email);   // a fresh PIN also clears any previous lockout
+        return issueNewResetPin(found.get(), "A new verification PIN has been sent to your email.");
+    }
+
+    /** Called when the admin submits the PIN in the modal. Does not clear the PIN on success. */
+    @Transactional
+    public PasswordResetResponse verifyResetPin(VerifyResetPinRequest req) {
+        String email = normaliseEmail(req == null ? null : req.email());
+        String pin = clean(req == null ? null : req.pin());
+        String lockKey = "reset:" + email;
+
+        Optional<Duration> locked = lockRemaining(lockKey);
+        if (locked.isPresent()) {
+            long minutes = Math.max(1, (locked.get().getSeconds() + 59) / 60);
+            return PasswordResetResponse.of(Status.LOCKED,
+                    "Too many incorrect attempts. Please try again in " + minutes + " minute(s).");
+        }
+
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        if (found.isEmpty()) {
+            // Same answer as a wrong PIN, so this can't be used to discover which emails exist.
+            return PasswordResetResponse.of(Status.INVALID_PIN, "That PIN is not correct.");
+        }
+
+        Admin admin = found.get();
+        clearExpiredResetPin(admin);
+        if (admin.getPasswordResetPin() == null) {
+            return PasswordResetResponse.of(Status.RESET_PIN_EXPIRED, "That PIN has expired. Please request a new one.");
+        }
+
+        boolean match = MessageDigest.isEqual(
+                admin.getPasswordResetPin().getBytes(StandardCharsets.UTF_8),
+                pin.getBytes(StandardCharsets.UTF_8));
+
+        if (!match) {
+            int failures = recordFailure(lockKey);
+            if (failures >= MAX_PIN_ATTEMPTS) {
+                return PasswordResetResponse.of(Status.LOCKED,
+                        "Too many incorrect attempts. Please try again in " + LOCKOUT.toMinutes() + " minutes.");
+            }
+            return PasswordResetResponse.of(Status.INVALID_PIN,
+                    "That PIN is not correct. " + (MAX_PIN_ATTEMPTS - failures) + " attempt(s) left.");
+        }
+
+        pinAttempts.remove(lockKey);
+        return PasswordResetResponse.of(Status.RESET_PIN_VERIFIED, "PIN verified. You can now set a new password.");
+    }
+
+    /** Called on final submit. Re-checks the PIN (it may have expired while they were typing) before saving. */
+    @Transactional
+    public AccountResponse confirmPasswordReset(ConfirmPasswordResetRequest req) {
+        String email = normaliseEmail(req == null ? null : req.email());
+        String pin = clean(req == null ? null : req.pin());
+        String newPassword = (req == null || req.newPassword() == null) ? "" : req.newPassword();
+        String confirmNewPassword = req == null ? null : req.confirmNewPassword();
+
+        Map<String, String> errors = validateNewPassword(newPassword, confirmNewPassword);
+        if (!errors.isEmpty()) {
+            return AccountResponse.invalid(errors);
+        }
+
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        if (found.isEmpty()) {
+            return AccountResponse.of(Status.INVALID_PIN, "That PIN is not correct.");
+        }
+
+        Admin admin = found.get();
+        clearExpiredResetPin(admin);
+        if (admin.getPasswordResetPin() == null) {
+            return AccountResponse.of(Status.RESET_PIN_EXPIRED, "That PIN has expired. Please request a new one.");
+        }
+
+        boolean match = MessageDigest.isEqual(
+                admin.getPasswordResetPin().getBytes(StandardCharsets.UTF_8),
+                pin.getBytes(StandardCharsets.UTF_8));
+        if (!match) {
+            return AccountResponse.of(Status.INVALID_PIN, "That PIN is not correct. Please verify it again.");
+        }
+
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        admin.setPasswordResetPin(null);
+        admin.setPasswordResetPinExpiresAt(null);
+        adminRepository.save(admin);
+        pinAttempts.remove("reset:" + email);
+        log.info("Admin {} reset their password", email);
+
+        try {
+            emailService.sendPasswordResetConfirmation(admin);
+        } catch (EmailService.EmailSendException e) {
+            log.warn("Admin {} reset their password but the confirmation email could not be sent", email);
+        }
+        return AccountResponse.of(Status.PASSWORD_RESET_SUCCESS, "Your password has been reset. You can now log in.");
+    }
+
+        /** Used by the dashboard's "who is logged in" check. Only ever called with a session-held email. */
+    @Transactional(readOnly = true)
+    public Optional<Admin> findVerifiedAdminByEmail(String rawEmail) {
+        String email = normaliseEmail(rawEmail);
+        return adminRepository.findByEmailIgnoreCase(email)
+                .filter(admin -> Boolean.TRUE.equals(admin.getVerified()));
+    }
+
+    
 
     // ------------------------------------------------------------------
     // Helpers
@@ -314,4 +488,52 @@ public class AccountManagementService {
             return a.failures;
         }
     }
+
+        private PasswordResetResponse issueNewResetPin(Admin admin, String message) {
+        admin.setPasswordResetPin(generatePin());
+        admin.setPasswordResetPinExpiresAt(LocalDateTime.now().plus(RESET_PIN_VALIDITY));
+        adminRepository.save(admin);
+        pinAttempts.remove("reset:" + admin.getEmail());
+        emailService.sendPasswordResetPin(admin);   // throws EmailSendException on failure; caller decides what to do
+        return PasswordResetResponse.withSeconds(Status.RESET_PIN_SENT, message, (int) RESET_PIN_VALIDITY.getSeconds());
+    }
+
+    /** Wipes a reset PIN once its 5-minute window has passed, leaving both columns null. */
+    private void clearExpiredResetPin(Admin admin) {
+        if (admin.getPasswordResetPin() != null
+                && admin.getPasswordResetPinExpiresAt() != null
+                && LocalDateTime.now().isAfter(admin.getPasswordResetPinExpiresAt())) {
+            admin.setPasswordResetPin(null);
+            admin.setPasswordResetPinExpiresAt(null);
+            adminRepository.save(admin);
+        }
+    }
+
+    private int secondsUntil(LocalDateTime expiry) {
+        if (expiry == null) return 0;
+        long seconds = Duration.between(LocalDateTime.now(), expiry).getSeconds();
+        return (int) Math.max(0, seconds);
+    }
+
+    /** Same rules as registration's password check, just under the "newPassword" field name. */
+    private Map<String, String> validateNewPassword(String pw, String confirmPw) {
+        Map<String, String> e = new LinkedHashMap<>();
+        if (pw.length() < MIN_PASSWORD) {
+            e.put("newPassword", "Password must be at least " + MIN_PASSWORD + " characters.");
+        } else if (pw.length() > MAX_PASSWORD) {
+            e.put("newPassword", "Password must be at most " + MAX_PASSWORD + " characters.");
+        } else if (!UPPER.matcher(pw).find()) {
+            e.put("newPassword", "Password must contain an uppercase letter.");
+        } else if (!LOWER.matcher(pw).find()) {
+            e.put("newPassword", "Password must contain a lowercase letter.");
+        } else if (!SPECIAL.matcher(pw).find()) {
+            e.put("newPassword", "Password must contain a special character.");
+        }
+        if (!pw.equals(confirmPw)) {
+            e.put("confirmNewPassword", "Passwords do not match.");
+        }
+        return e;
+    }
+
+    
 }

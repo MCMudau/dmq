@@ -15,9 +15,9 @@ public class AdminPagesController {
      * Serve the admin dashboard (admin.html)
      * @return admin dashboard view
      */
-    @GetMapping({"", "/", "/dashboard"})
+    @GetMapping({ "/", "/dashboard"})
     public String dashboard() {
-        return "forward:/admin.html";
+        return "forward:/adminDashboard.html";
     }
 
     /**
@@ -33,7 +33,7 @@ public class AdminPagesController {
      * Redirect to the admin login page
      * @return redirect to login
      */
-    @GetMapping("/login")
+    @GetMapping({"/login",""})
     public String login() {
         return "redirect:/adminLogin.html";
     }

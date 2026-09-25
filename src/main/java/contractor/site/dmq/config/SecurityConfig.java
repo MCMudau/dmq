@@ -54,37 +54,17 @@ public class SecurityConfig {
                     "/api/previous-projects/**",
                     "/api/previous-projects"
                 ).permitAll()
+
+                .requestMatchers("/scripts/**").permitAll()
                 
                 // Allow public quotation submission
-                .requestMatchers("/api/quotations").permitAll()
-                
-                // Allow public admin account creation (must come before /admin/**)
-                .requestMatchers("/admin/create-account").permitAll()
-                .requestMatchers("/api/admin/account/register", "/api/admin/account/verify","/admin/login").permitAll()
-
-                // Require authentication for admin endpoints
-                .requestMatchers("/api/admin/**").authenticated()
-                .requestMatchers("/admin/**").authenticated()
+                .requestMatchers("/api/admin/**").permitAll()
+                .requestMatchers("/admin/**").permitAll()
                 
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
             
-            // Login configuration
-            .formLogin(form -> form
-                .loginPage("/login.html")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/admin.html", true)
-                .failureUrl("/login.html?error")
-                .permitAll()
-            )
-            
-            // Logout configuration
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/?logout")
-                .permitAll()
-            )
             
             // Exception handling
             .exceptionHandling(ex -> ex

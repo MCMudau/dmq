@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Dashboard | DMQ Plumbers &amp; Renovations</title>
+<style>
+  :root { --navy: #002f87; --blue: #0a63c9; --yellow: #f9e526; --ink: #14213d; --muted: #5b6577; --bg: #eef3fb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  main.dmq-main { padding: 32px 24px 48px; max-width: 960px; margin: 0 auto; }
+  .welcome-card {
+    background: #fff; padding: 28px 28px 24px;
+    box-shadow: 0 8px 24px rgba(0, 30, 90, .1);
+  }
+  .welcome-card h1 { margin: 0 0 6px; font-size: 26px; color: var(--navy); }
+  .welcome-card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .skeleton { display: inline-block; width: 220px; height: 26px; border-radius: 6px; background: #e3e8f2;
+    animation: pulse 1.3s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+</style>
+</head>
+<body>
+<div id="adminNav"></div>
+
+<main class="dmq-main">
+  <div class="welcome-card">
+    <h1 id="welcomeHeading"><span class="skeleton" aria-hidden="true"></span></h1>
+    <p id="welcomeSub">Loading your dashboard…</p>
+  </div>
+</main>
+
+<script src="scripts/adminNav.js"></script>
+<script>
+(function () {
+  AdminNav.init({ active: '' });   // no nav item matches "dashboard"; nothing highlighted
+
+  const heading = document.getElementById('welcomeHeading');
+  const sub = document.getElementById('welcomeSub');
+
+  function greetingForNow() {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  fetch('/api/admin/account/me')
+    .then((res) => {
+      if (res.status === 401) {
+        window.location.href = '/adminLogin.html';
+        return null;
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (!data) return;   // redirecting to login
+      heading.textContent = greetingForNow() + ', ' + data.name + '!';
+      sub.textContent = 'Welcome back to the DMQ Plumbers & Renovations admin dashboard.';
+    })
+    .catch(() => {
+      heading.textContent = 'Welcome!';
+      sub.textContent = "We couldn't reach the server just now. Some information may be missing.";
+    });
+})();
+</script>
+</body>
+</html>
