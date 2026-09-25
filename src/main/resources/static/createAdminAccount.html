@@ -222,7 +222,7 @@
       <button type="submit" class="submit" id="submitBtn" disabled>Create account</button>
     </form>
 
-    <div class="foot">Already have an account? <a href="/admin/login">Log in</a></div>
+    <div class="foot">Already have an account? <a href="/adminLogin.html">Log in</a></div>
   </div>
 </div>
 
@@ -242,7 +242,7 @@
       <div class="tick" aria-hidden="true">&#10003;</div>
       <h2>Account verified</h2>
       <p>Your administrator account is now active. You can log in.</p>
-      <a class="linkbtn" href="/admin/login">Go to login</a>
+      <a class="linkbtn" href="/adminLogin.html">Go to login</a>
     </div>
   </div>
 </div>
@@ -482,7 +482,7 @@
           openModal(data);
           break;
         case 'ALREADY_VERIFIED':
-          showBanner(data.message, '/admin/login', 'Log in');
+          showBanner(data.message, '/adminLogin.html', 'Log in');
           break;
         case 'VALIDATION_ERROR':
           applyFieldErrors(data.fieldErrors || {});

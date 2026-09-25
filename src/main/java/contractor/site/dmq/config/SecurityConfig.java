@@ -60,7 +60,7 @@ public class SecurityConfig {
                 
                 // Allow public admin account creation (must come before /admin/**)
                 .requestMatchers("/admin/create-account").permitAll()
-                .requestMatchers("/api/admin/account/register", "/api/admin/account/verify").permitAll()
+                .requestMatchers("/api/admin/account/register", "/api/admin/account/verify","/admin/login").permitAll()
 
                 // Require authentication for admin endpoints
                 .requestMatchers("/api/admin/**").authenticated()

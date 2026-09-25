@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import contractor.site.dmq.dtos.AccountDtos.AccountResponse;
+import contractor.site.dmq.dtos.AccountDtos.LoginRequest;
 import contractor.site.dmq.dtos.AccountDtos.RegisterAdminRequest;
 import contractor.site.dmq.dtos.AccountDtos.Status;
 import contractor.site.dmq.dtos.AccountDtos.VerifyAdminRequest;
@@ -50,6 +51,9 @@ public class AccountManagementService {
 
     private static final int MAX_PIN_ATTEMPTS = 5;
     private static final Duration LOCKOUT = Duration.ofMinutes(15);
+        // Burns the same time as a real check when the email doesn't exist, so response
+    // time can't be used to discover which emails are registered.
+    private static final String DUMMY_HASH = new BCryptPasswordEncoder().encode("not-a-real-password");
 
     private final AdminRepository adminRepository;
     private final EmailService emailService;
@@ -172,6 +176,59 @@ public class AccountManagementService {
             log.warn("Admin {} verified but the confirmation email could not be sent", email);
         }
         return AccountResponse.of(Status.VERIFIED, "Your account has been verified.");
+    }
+
+        // ------------------------------------------------------------------
+    // Login
+    // ------------------------------------------------------------------
+
+    @Transactional(readOnly = true)
+    public AccountResponse login(LoginRequest req) {
+        String email = normaliseEmail(req == null ? null : req.email());
+        String password = (req == null || req.password() == null) ? "" : req.password();
+
+        if (email.isEmpty() || password.isEmpty()) {
+            return AccountResponse.of(Status.INVALID_CREDENTIALS, "Enter your email and password.");
+        }
+        if (password.length() > MAX_PASSWORD) {
+            return AccountResponse.of(Status.INVALID_CREDENTIALS, "Incorrect email or password.");
+        }
+
+        // Separate counter from PIN attempts ("login:" prefix), reusing the same lockout helpers.
+        String lockKey = "login:" + email;
+        Optional<Duration> locked = lockRemaining(lockKey);
+        if (locked.isPresent()) {
+            long minutes = Math.max(1, (locked.get().getSeconds() + 59) / 60);
+            return AccountResponse.of(Status.LOCKED,
+                    "Too many incorrect attempts. Please try again in " + minutes + " minute(s).");
+        }
+
+        Optional<Admin> found = adminRepository.findByEmailIgnoreCase(email);
+        String hash = found.map(Admin::getPassword).orElse(DUMMY_HASH);
+        boolean passwordOk = passwordEncoder.matches(password, hash);
+
+        if (found.isEmpty() || !passwordOk) {
+            int failures = recordFailure(lockKey);
+            if (failures >= MAX_PIN_ATTEMPTS) {
+                return AccountResponse.of(Status.LOCKED,
+                        "Too many incorrect attempts. Please try again in " + LOCKOUT.toMinutes() + " minutes.");
+            }
+            return AccountResponse.of(Status.INVALID_CREDENTIALS, "Incorrect email or password.");
+        }
+
+        pinAttempts.remove(lockKey);
+        Admin admin = found.get();
+
+        // Checked only AFTER the password is correct, so an unverified account's
+        // existence is never revealed to someone who doesn't know its password.
+        if (!Boolean.TRUE.equals(admin.getVerified())) {
+            return AccountResponse.of(Status.NOT_VERIFIED,
+                    "Your account has not been verified yet. Contact the owner for your verification PIN, "
+                            + "then enter it on the registration page.");
+        }
+
+        log.info("Admin {} logged in", email);
+        return AccountResponse.of(Status.LOGIN_SUCCESS, "Welcome back, " + admin.getName() + ".");
     }
 
     // ------------------------------------------------------------------

@@ -29,6 +29,14 @@ public final class AccountDtos {
             return "VerifyAdminRequest[email=" + email + "]";
         }
     }
+        
+    public record LoginRequest(String email, String password) {
+
+        @Override
+        public String toString() {
+            return "LoginRequest[email=" + email + "]";
+        }
+    }
 
     public enum Status {
         /** Account exists (just created, or created earlier) and still needs the owner's PIN. */
@@ -43,7 +51,7 @@ public final class AccountDtos {
         /** Too many wrong PINs; temporarily locked. */
         LOCKED,
         /** The owner could not be emailed, so nothing was saved. */
-        EMAIL_FAILED
+        EMAIL_FAILED, LOGIN_SUCCESS, INVALID_CREDENTIALS, NOT_VERIFIED
     }
 
     public record AccountResponse(Status status, String message, boolean newAccount, Map<String, String> fieldErrors) {

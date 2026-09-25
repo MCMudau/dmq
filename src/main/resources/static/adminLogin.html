@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Login | DMQ Plumbers &amp; Renovations</title>
+<style>
+  :root {
+    --navy: #002f87;
+    --blue: #0a63c9;
+    --yellow: #f9e526;
+    --ink: #14213d;
+    --muted: #5b6577;
+    --line: #d6dce8;
+    --bg: #eef3fb;
+    --ok: #1a8f4c;
+    --bad: #c62828;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy) 38%, var(--bg) 38%);
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 48px;
+  }
+  .wrap { width: 100%; max-width: 440px; }
+  .brand { color: #fff; margin-bottom: 20px; }
+  .brand b { font-size: 22px; letter-spacing: .5px; }
+  .brand span { display: block; font-size: 14px; letter-spacing: 2px; opacity: .85; }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 12px 32px rgba(0, 30, 90, .18);
+    border-top: 6px solid var(--yellow);
+  }
+  @media (max-width: 480px) { .card { padding: 22px 18px; } }
+  h1 { margin: 0 0 4px; font-size: 24px; color: var(--navy); }
+  .sub { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .label-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .label-row a { font-size: 13px; font-weight: 600; color: var(--blue); text-decoration: none; margin-bottom: 6px; }
+  .label-row a:hover { text-decoration: underline; }
+  .input-wrap { position: relative; }
+  input {
+    width: 100%;
+    font: inherit;
+    font-size: 15px;
+    padding: 11px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(10, 99, 201, .18); }
+  input.invalid { border-color: var(--bad); }
+  .has-eye input { padding-right: 46px; }
+  .eye {
+    position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+    width: 36px; height: 36px; border: 0; background: transparent; cursor: pointer;
+    border-radius: 6px; color: var(--muted); display: grid; place-items: center;
+  }
+  .eye:hover { color: var(--navy); background: #eef3fb; }
+  .eye:focus-visible { outline: 3px solid rgba(10, 99, 201, .35); }
+  .eye svg { width: 20px; height: 20px; }
+  .eye .off { display: none; }
+  .eye[aria-pressed="true"] .on { display: none; }
+  .eye[aria-pressed="true"] .off { display: block; }
+  .msg { font-size: 12.5px; color: var(--bad); margin-top: 5px; }
+
+  .banner {
+    display: none; margin-bottom: 14px; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; line-height: 1.45;
+    background: #fdecea; color: #8a1c1c; border: 1px solid #f3b8b3;
+  }
+  .banner.show { display: block; }
+  .banner.info { background: #fff8d6; color: #5c4a00; border-color: #efe08a; }
+  .banner a { color: var(--blue); font-weight: 700; }
+
+  button.submit {
+    width: 100%; margin-top: 4px; padding: 13px; font: inherit; font-weight: 700; font-size: 16px;
+    border: 0; border-radius: 8px; cursor: pointer; background: var(--navy); color: #fff;
+    transition: background .15s, transform .05s;
+  }
+  button.submit:hover:not(:disabled) { background: var(--blue); }
+  button.submit:active:not(:disabled) { transform: translateY(1px); }
+  button.submit:disabled { background: #b8c2d8; cursor: not-allowed; }
+  .foot { text-align: center; margin-top: 18px; font-size: 13.5px; color: var(--muted); }
+  .foot a { color: var(--blue); font-weight: 600; text-decoration: none; }
+  .foot a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <b>DMQ PLUMBERS</b>
+    <span>And Renovations</span>
+  </div>
+
+  <div class="card">
+    <h1>Admin Login</h1>
+    <p class="sub">Log in to manage quotations, projects and clients.</p>
+
+    <div class="banner" id="banner" role="alert"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="username" required autofocus>
+        <div class="msg" id="emailMsg"></div>
+      </div>
+
+      <div class="field">
+        <div class="label-row">
+          <label for="password">Password</label>
+          <a href="/adminForgotPassword.html">Forgot password?</a>
+        </div>
+        <div class="input-wrap has-eye">
+          <input id="password" name="password" type="password" autocomplete="current-password" maxlength="64" required>
+          <button type="button" class="eye" id="eyeBtn" aria-label="Show password" aria-pressed="false">
+            <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <div class="msg" id="passwordMsg"></div>
+      </div>
+
+      <button type="submit" class="submit" id="submitBtn">Log in</button>
+    </form>
+
+    <div class="foot">Don't have an account? <a href="/createAdminAccount.html">Create a new account</a></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Where to send the admin after a successful login. Change to your dashboard page.
+  const AFTER_LOGIN_URL = '/admin/dashboard';
+
+  const $ = (id) => document.getElementById(id);
+  const form = $('loginForm');
+  const email = $('email');
+  const pw = $('password');
+  const submitBtn = $('submitBtn');
+  const banner = $('banner');
+
+  // ---------- Show / hide password ----------
+  const eye = $('eyeBtn');
+  eye.addEventListener('click', () => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    eye.setAttribute('aria-pressed', String(show));
+    eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    pw.focus();
+  });
+
+  // ---------- Helpers ----------
+  function setError(input, msgEl, text) {
+    msgEl.textContent = text;
+    input.classList.toggle('invalid', !!text);
+  }
+
+  function showBanner(text, opts) {
+    opts = opts || {};
+    banner.textContent = text;
+    banner.classList.toggle('info', !!opts.info);
+    if (opts.linkHref) {
+      const a = document.createElement('a');
+      a.href = opts.linkHref;
+      a.textContent = opts.linkText;
+      banner.append(' ', a);
+    }
+    banner.classList.add('show');
+  }
+  function hideBanner() { banner.classList.remove('show', 'info'); banner.textContent = ''; }
+
+  email.addEventListener('input', () => { if (email.classList.contains('invalid')) setError(email, $('emailMsg'), ''); });
+  pw.addEventListener('input', () => { if (pw.classList.contains('invalid')) setError(pw, $('passwordMsg'), ''); });
+
+  // ---------- Submit ----------
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideBanner();
+
+    const emailVal = email.value.trim().toLowerCase();
+    const pwVal = pw.value;
+
+    setError(email, $('emailMsg'), /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailVal) ? '' : 'Enter a valid email address.');
+    setError(pw, $('passwordMsg'), pwVal ? '' : 'Enter your password.');
+    if (email.classList.contains('invalid')) { email.focus(); return; }
+    if (pw.classList.contains('invalid')) { pw.focus(); return; }
+
+    const label = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+    try {
+      const res = await fetch('/api/admin/account/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailVal, password: pwVal })
+      });
+      let data = null;
+      try { data = await res.json(); } catch (_) { /* handled below */ }
+      if (!data) throw new Error('Unexpected server response');
+
+      switch (data.status) {
+        case 'LOGIN_SUCCESS':
+          window.location.href = AFTER_LOGIN_URL;
+          return;                                   // keep the button disabled while redirecting
+        case 'NOT_VERIFIED':
+          showBanner(data.message, { info: true, linkHref: '/createAdminAccount.html', linkText: 'Go to registration' });
+          break;
+        default:                                    // INVALID_CREDENTIALS, LOCKED, anything else
+          showBanner(data.message || 'Something went wrong. Please try again.');
+          if (data.status === 'INVALID_CREDENTIALS') { pw.value = ''; pw.focus(); }
+      }
+    } catch (_) {
+      showBanner('Could not reach the server. Please check your connection and try again.');
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = label;
+  });
+})();
+</script>
+</body>
+</html>

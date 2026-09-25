@@ -35,6 +35,6 @@ public class AdminPagesController {
      */
     @GetMapping("/login")
     public String login() {
-        return "redirect:/login.html";
+        return "redirect:/adminLogin.html";
     }
 }
