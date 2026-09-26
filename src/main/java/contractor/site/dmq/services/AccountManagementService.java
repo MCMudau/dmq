@@ -101,10 +101,11 @@ public class AccountManagementService {
             }
             return AccountResponse.pending(
                     "An account with this email has already been created but is not verified yet. "
-                            + "Please contact the owner for the verification PIN.", false);
+                            + "Please contact the owner for the verification PIN. ", false);
         }
 
         Admin admin = new Admin();
+        
         admin.setName(clean(req.name()));
         admin.setSurname(clean(req.surname()));
         admin.setEmail(email);
