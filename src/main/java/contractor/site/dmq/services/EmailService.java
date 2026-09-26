@@ -247,7 +247,7 @@ public class EmailService {
                   {{content}}
                 </div>
                 <div style="background:#002f87;color:#ffffff;font-size:12px;padding:14px 24px;">
-                  29 Knight Rd, Turffontein, Johannesburg South, 2190 &nbsp;|&nbsp; +27 71 932 8617
+                  9 Knight Rd, Turffontein, Johannesburg South, 2190 &nbsp;|&nbsp; +27 71 932 8617
                 </div>
               </div>
             </div>
