@@ -1,29 +1,41 @@
 package contractor.site.dmq.services;
 
-import java.io.UnsupportedEncodingException;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.HtmlUtils;
 
 import contractor.site.dmq.models.Admin;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Sends all outgoing platform emails over SMTP.
+ * Sends all outgoing platform emails through Brevo's transactional email HTTP API
+ * (POST https://api.brevo.com/v3/smtp/email). HTTPS on port 443 is used instead of SMTP,
+ * so it works even where a VPS provider blocks outbound mail ports.
  *
  * Admin verification flow:
  *   1. Admin registers  -> notifyOwnerOfNewAdmin()        (owner gets details + PIN)
  *                       -> sendRegistrationReceivedToAdmin() (admin is told to wait)
  *   2. Owner shares the PIN with the admin, admin enters it, account is marked verified
  *                       -> sendAdminVerifiedNotice()       (admin told they can log in)
+ *
+ * Sender addresses: every email is sent from one of the FROM_* constants below rather
+ * than a single configured address, so different kinds of mail (admin alerts vs.
+ * future client-facing quotation mail) come from an address that matches their purpose.
+ * All of these live on dmq.schedulers.trade, which is already domain-authenticated
+ * (SPF/DKIM/DMARC) with Brevo, so any address on it can send without separate
+ * per-address verification.
  *
  * Note: this class uses Spring's @Service. Import it explicitly (not via a wildcard) so it
  * is never confused with your own contractor.site.dmq.models.Service entity.
@@ -35,8 +47,37 @@ public class EmailService {
 
     private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
-    private final JavaMailSender mailSender;
+    // ------------------------------------------------------------------
+    // Sender addresses - all on the authenticated dmq.schedulers.trade domain.
+    // Pick the one that matches what the email is about, not who technically sent it.
+    // ------------------------------------------------------------------
+
+    /** Admin account lifecycle: registration, verification, password reset, owner alerts. */
+    public static final String FROM_ADMIN = "admin@dmq.schedulers.trade";
+
+    /** Quotation-related mail to clients (used once quotation emails are added). */
+    public static final String FROM_QUOTES = "quote@dmq.schedulers.trade";
+
+    /** Anything automated that shouldn't invite a reply. */
+    public static final String FROM_NOREPLY = "noreply@dmq.schedulers.trade";
+
+    /** Display name shown in the recipient's inbox, regardless of which address sent it. */
+    private static final String DISPLAY_NAME = "DMQ Plumbers & Renovations";
+
+    private static final String BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email";
+
+    private static final RestClient BREVO = RestClient.builder()
+            .requestFactory(brevoRequestFactory())
+            .build();
+
     private final EmailProperties props;
+
+    private static JdkClientHttpRequestFactory brevoRequestFactory() {
+        HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(http);
+        factory.setReadTimeout(Duration.ofSeconds(10));
+        return factory;
+    }
 
     // ------------------------------------------------------------------
     // Domain emails
@@ -103,7 +144,7 @@ public class EmailService {
         sendToAdmin(admin, "Your admin account is now active", layout("Account verified", content));
     }
 
-        /** To the ADMIN: the PIN needed to reset their password. Expires in 5 minutes. */
+    /** To the ADMIN: the PIN needed to reset their password. Expires in 5 minutes. */
     public void sendPasswordResetPin(Admin admin) {
         String content = """
             <p>Hi {{name}},</p>
@@ -138,32 +179,52 @@ public class EmailService {
     // Generic helpers (reusable for other features)
     // ------------------------------------------------------------------
 
-    /** Sends an already-built HTML email to the owner's fixed address. */
+    /** Sends an already-built HTML email to the owner's fixed address, from FROM_ADMIN. */
     public void sendToOwner(String subject, String htmlBody) {
-        sendEmail(props.getOwnerEmail(), subject, htmlBody);
+        sendEmail(FROM_ADMIN, props.getOwnerEmail(), subject, htmlBody);
     }
 
-    /** Sends an already-built HTML email to an admin. */
+    /** Sends an already-built HTML email to an admin, from FROM_ADMIN. */
     public void sendToAdmin(Admin admin, String subject, String htmlBody) {
-        sendEmail(admin.getEmail(), subject, htmlBody);
+        sendEmail(FROM_ADMIN, admin.getEmail(), subject, htmlBody);
     }
 
     /**
-     * Core SMTP send. Throws EmailSendException on failure so callers can decide what to do
-     * (e.g. roll back a registration if the owner could not be notified).
+     * Core send via the Brevo API. Throws EmailSendException on failure so callers can decide
+     * what to do (e.g. roll back a registration if the owner could not be notified).
+     *
+     * @param from one of the FROM_* constants above - pick the one matching the email's purpose.
      */
-    public void sendEmail(String to, String subject, String htmlBody) {
+    public void sendEmail(String from, String to, String subject, String htmlBody) {
+        String apiKey = props.getBrevoApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("Cannot send email to {}: dmq.mail.brevo-api-key (BREVO_API_KEY) is not set", to);
+            throw new EmailSendException("Brevo API key is not configured", null);
+        }
+
+        Map<String, Object> body = Map.of(
+                "sender", Map.of("name", DISPLAY_NAME, "email", from),
+                "to", List.of(Map.of("email", to)),
+                "subject", subject,
+                "htmlContent", htmlBody);
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(props.getFromAddress(), props.getFromName());
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-            log.info("Email sent to {} (subject: {})", to, subject);
-        } catch (MessagingException | UnsupportedEncodingException | MailException e) {
-            log.error("Failed to send email to {} (subject: {})", to, subject, e);
+            BREVO.post()
+                    .uri(BREVO_SEND_URL)
+                    .header("api-key", apiKey.trim())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Email sent to {} (from: {}, subject: {})", to, from, subject);
+        } catch (RestClientResponseException e) {
+            // Brevo explains the problem in the body, e.g. {"code":"unauthorized","message":"Key not found"}
+            log.error("Brevo rejected email to {} (from: {}, subject: {}): HTTP {} {}",
+                    to, from, subject, e.getStatusCode().value(), e.getResponseBodyAsString());
+            throw new EmailSendException("Could not send email to " + to, e);
+        } catch (RestClientException e) {
+            log.error("Failed to reach Brevo for email to {} (from: {}, subject: {})", to, from, subject, e);
             throw new EmailSendException("Could not send email to " + to, e);
         }
     }

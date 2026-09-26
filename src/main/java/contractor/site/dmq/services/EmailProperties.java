@@ -10,6 +10,10 @@ import lombok.Data;
  *
  * ownerEmail is the fixed business-owner address. It is never taken from user input:
  * every new admin registration is sent to this address so the owner can verify it.
+ *
+ * Sender addresses (quote@, admin@, noreply@...) are NOT here - they're defined as
+ * constants in EmailService itself (FROM_QUOTES / FROM_ADMIN / FROM_NOREPLY), since
+ * they're fixed per email type rather than per-environment config.
  */
 @Component
 @ConfigurationProperties(prefix = "dmq.mail")
@@ -19,16 +23,9 @@ public class EmailProperties {
     /** The owner who approves every new admin. Set once in configuration. */
     private String ownerEmail;
 
-    /** Sender address. With Gmail/most providers this must match the SMTP login. */
-    private String fromAddress;
+    /** Brevo API key (xkeysib-...), used to send all email over Brevo's HTTPS API. Read from dmq.mail.brevo-api-key. */
+    private String brevoApiKey;
 
-    /** Display name shown in the recipient's inbox. */
-    private String fromName = "DMQ Plumbers & Renovations";
-
-    /** Link placed in the "your account is active" email. */
+    /** Link placed in the "your account is active" email. Read from dmq.mail.admin-login-url. */
     private String adminLoginUrl = "http://localhost:8080/admin/login";
-
-    public String getAdminLoginUrl() {
-       return adminLoginUrl;
-    }
 }
