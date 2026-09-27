@@ -1,13 +1,24 @@
 package contractor.site.dmq.models;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "previous_project")
@@ -50,10 +61,7 @@ public class PreviousProject {
     @Builder.Default
     private Set<PreviousProjectImage> images = new HashSet<>();
 
-    @OneToMany(mappedBy = "previousProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @Builder.Default
-    private Set<PreviousProjectComment> comments = new HashSet<>();
-
+   
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

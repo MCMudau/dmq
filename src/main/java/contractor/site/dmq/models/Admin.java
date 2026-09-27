@@ -65,15 +65,8 @@ public class Admin {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    // Relationships
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<Project> projects = new HashSet<>();
-
-    @OneToMany(mappedBy = "capturedBy", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<ProjectStage> projectStages = new HashSet<>();
-
+   
+   
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Service> services = new HashSet<>();

@@ -366,13 +366,46 @@
             margin: 0 auto;
         }
 
+        /* Horizontal, scrollable row of service cards (same pattern as the projects carousel) */
+        .services-carousel {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            display: flex;
             gap: 2rem;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            flex: 1;
+            min-width: 0;                 /* lets the row shrink instead of pushing the page wider */
+            padding: 1rem 0.25rem 1.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bright-yellow) transparent;
+        }
+
+        .services-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .services-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .services-grid::-webkit-scrollbar-thumb {
+            background: var(--bright-yellow);
+            border-radius: 10px;
         }
 
         .service-card {
+            /* Fixed-width cards that scroll, never stretched to fill the screen */
+            flex: 0 0 clamp(240px, 28vw, 300px);
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             background: var(--white);
             border: 2px solid var(--border-color);
             border-radius: 12px;
@@ -380,6 +413,17 @@
             text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
+        }
+
+        .service-card .service-btn {
+            margin-top: auto;             /* keeps "Get Quote" aligned at the bottom of every card */
+        }
+
+        .services-status {
+            flex: 1;
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-gray);
         }
 
         .service-card:hover {
@@ -404,6 +448,12 @@
             color: var(--text-gray);
             font-size: 0.95rem;
             margin-bottom: 1.5rem;
+            /* Long descriptions are cut at 4 lines so all cards stay the same height */
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .service-btn {
@@ -1043,7 +1093,12 @@
             }
 
             .services-grid {
-                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .service-card {
+                flex-basis: 75%;          /* one card plus a peek of the next, so it's obvious the row scrolls */
+                padding: 1.5rem;
             }
 
             .project-card {
@@ -1174,8 +1229,19 @@
             <h2>Our Services</h2>
             <p>Professional plumbing and renovation solutions tailored to your needs</p>
         </div>
-        <div class="services-grid" id="servicesContainer">
-            <!-- Services will be loaded here dynamically -->
+        <div class="services-carousel">
+            <button class="carousel-btn prev" onclick="scrollServices('left')" aria-label="Previous services">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div class="services-grid" id="servicesContainer">
+                <!-- Services are loaded here from /api/services -->
+                <div class="services-status">Loading services…</div>
+            </div>
+
+            <button class="carousel-btn next" onclick="scrollServices('right')" aria-label="Next services">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </section>
 
@@ -1360,46 +1426,8 @@
     <script>
         // ============================================
         // MOCK DATA - In production, this will come from API
+        // (services are already loaded from /api/services, see loadServices)
         // ============================================
-
-        const servicesData = [
-            {
-                id: 1,
-                name: "All Plumbing",
-                icon: "fas fa-pipes",
-                description: "Complete plumbing solutions including repairs, installations, and maintenance"
-            },
-            {
-                id: 2,
-                name: "New Geysers",
-                icon: "fas fa-temperature-high",
-                description: "Professional installation and replacement of water heating systems"
-            },
-            {
-                id: 3,
-                name: "All Leaks",
-                icon: "fas fa-droplet",
-                description: "Expert detection and repair of water leaks from any source"
-            },
-            {
-                id: 4,
-                name: "Leak Detection",
-                icon: "fas fa-search",
-                description: "Advanced technology to locate hidden leaks without damage"
-            },
-            {
-                id: 5,
-                name: "Unblock Drains",
-                icon: "fas fa-wind",
-                description: "Fast and effective drain clearing services for all types of blockages"
-            },
-            {
-                id: 6,
-                name: "Bathroom Renovation",
-                icon: "fas fa-bath",
-                description: "Transform your bathroom with modern designs and quality installations"
-            }
-        ];
 
         const projectsData = [
             {
@@ -1527,26 +1555,74 @@
         // LOAD SERVICES
         // ============================================
 
+        // The API has no icon field, so pick one from keywords in the service name.
+        // First match wins; anything unmatched gets the wrench.
+        const SERVICE_ICONS = [
+            [/solar/i, 'fas fa-solar-panel'],
+            [/geyser|water heat/i, 'fas fa-temperature-high'],
+            [/roof/i, 'fas fa-house-chimney'],
+            [/detect/i, 'fas fa-magnifying-glass'],
+            [/leak|waterproof/i, 'fas fa-droplet'],
+            [/drain|unblock/i, 'fas fa-toilet'],
+            [/bath/i, 'fas fa-bath'],
+            [/kitchen/i, 'fas fa-kitchen-set'],
+            [/backup|tank|water system/i, 'fas fa-water'],
+            [/paint/i, 'fas fa-paint-roller'],
+            [/tiling|tile/i, 'fas fa-border-all'],
+            [/floor|carpent|wood/i, 'fas fa-hammer'],
+            [/demoli/i, 'fas fa-person-digging'],
+            [/plaster|rhinolite/i, 'fas fa-trowel'],
+            [/building|alteration|construct/i, 'fas fa-trowel-bricks'],
+            [/handyman/i, 'fas fa-screwdriver-wrench'],
+            [/plumb/i, 'fas fa-faucet-drip']
+        ];
+
+        function iconForService(name) {
+            const match = SERVICE_ICONS.find(([pattern]) => pattern.test(name || ''));
+            return match ? match[1] : 'fas fa-wrench';
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : value;
+            return div.innerHTML;
+        }
+
         function loadServices() {
             const container = document.getElementById('servicesContainer');
-            container.innerHTML = '';
 
-            servicesData.forEach(service => {
-                const serviceCard = document.createElement('div');
-                serviceCard.className = 'service-card';
-                serviceCard.innerHTML = `
-                    <div class="service-icon">
-                        <i class="${service.icon}"></i>
-                    </div>
-                    <h3>${service.name}</h3>
-                    <p>${service.description}</p>
-                    <a href="#quotation" class="service-btn" onclick="scrollToSection('quotation')">
-                        <span>Get Quote</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                `;
-                container.appendChild(serviceCard);
-            });
+            fetch('/api/services')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load services');
+                    return res.json();
+                })
+                .then(services => {
+                    if (!services.length) {
+                        container.innerHTML = '<div class="services-status">Our services will be listed here soon.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    services.forEach(service => {
+                        const serviceCard = document.createElement('div');
+                        serviceCard.className = 'service-card';
+                        serviceCard.innerHTML = `
+                            <div class="service-icon">
+                                <i class="${iconForService(service.name)}"></i>
+                            </div>
+                            <h3>${escapeHtml(service.name)}</h3>
+                            <p>${escapeHtml(service.description)}</p>
+                            <a href="#quotation" class="service-btn" onclick="scrollToSection('quotation'); return false;">
+                                <span>Get Quote</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        `;
+                        container.appendChild(serviceCard);
+                    });
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="services-status">We couldn\'t load our services right now. Please refresh the page.</div>';
+                });
         }
 
         // ============================================
@@ -1647,6 +1723,13 @@
 
         function scrollTestimonials(direction) {
             scrollCarousel('testimonialsContainer', direction);
+        }
+
+        // Scrolls the services row by about one visible "page" of cards, so it adapts to any screen width.
+        function scrollServices(direction) {
+            const container = document.getElementById('servicesContainer');
+            const amount = Math.max(container.clientWidth * 0.8, 240);
+            container.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
         }
 
         function scrollCarousel(containerId, direction) {
