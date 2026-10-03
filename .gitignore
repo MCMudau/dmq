@@ -33,3 +33,4 @@ build/
 .vscode/
 test-email.json
 test-email.txt
+app.log

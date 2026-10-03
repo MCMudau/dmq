@@ -1,12 +1,10 @@
 package contractor.site.dmq.repos;
 
-import javaLutilList
-
-
+import contractor.site.dmq.models.Project;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-contractorsitedmq.models.Project
-import contractor.site.dmq.models.Project;
+
+import java.util.List;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
