@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — DMQ Admin</title>
+<style>
+  :root {
+    --dmq-navy: #002f87;
+    --dmq-blue: #0a63c9;
+    --dmq-yellow: #f9e526;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    color: #1c2333;
+  }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+  .page h1 { font-size: 24px; color: var(--dmq-navy); margin: 0 0 4px; }
+  .page .subtitle { color: #5b6577; font-size: 14.5px; margin: 0 0 24px; }
+
+  .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .search-box { flex: 1; min-width: 220px; position: relative; }
+  .search-box svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; stroke: #8a93a6;
+  }
+  .search-box input {
+    width: 100%; padding: 11px 12px 11px 36px; border: 1px solid #d7dded; background: #fff;
+    font-size: 14.5px; font-family: inherit; outline: none;
+  }
+  .search-box input:focus { border-color: var(--dmq-blue); box-shadow: 0 0 0 3px rgba(10, 99, 201, .12); }
+
+  .btn {
+    font: inherit; font-size: 14.5px; font-weight: 700; padding: 11px 18px;
+    border: 0; cursor: pointer; white-space: nowrap;
+  }
+  .btn-primary { background: var(--dmq-navy); color: #fff; }
+  .btn-primary:hover { background: #001f5c; }
+  .btn-ghost { background: #eef3fb; color: var(--dmq-navy); }
+  .btn-ghost:hover { background: #dde5f3; }
+  .btn-danger { background: #c62828; color: #fff; }
+  .btn-danger:hover { background: #a61f1f; }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn-block { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; }
+  .btn-block svg { width: 17px; height: 17px; flex: none; }
+
+  /* ---- Two-column layout: list + side panel ---- */
+  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+
+  .project-list { display: flex; flex-direction: column; gap: 10px; }
+  .project-tile {
+    display: flex; gap: 14px; align-items: center; cursor: pointer;
+    background: #fff; border: 1px solid #e3e8f2; border-left: 4px solid var(--dmq-blue);
+    padding: 14px 16px; transition: box-shadow .15s ease, border-color .15s ease;
+  }
+  .project-tile:hover { box-shadow: 0 6px 18px rgba(0, 47, 135, .08); }
+  .project-tile.selected {
+    border-left-color: var(--dmq-yellow); background: #f7faff;
+    box-shadow: 0 6px 18px rgba(0, 47, 135, .10);
+  }
+  .project-tile:focus-visible { outline: 3px solid rgba(10, 99, 201, .4); outline-offset: 2px; }
+  .tile-thumb {
+    width: 72px; height: 72px; flex: none; background: #eef3fb; display: grid; place-items: center;
+    overflow: hidden; color: #8a93a6;
+  }
+  .tile-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile-thumb svg { width: 26px; height: 26px; }
+  .tile-body { min-width: 0; flex: 1; }
+  .project-tile h3 { margin: 0 0 4px; font-size: 16px; color: var(--dmq-navy); }
+  .project-tile p {
+    margin: 0; font-size: 14px; color: #5b6577; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .tile-meta { margin: 0 0 4px; font-size: 12.5px; font-weight: 700; color: var(--dmq-blue); }
+  .badge {
+    flex: none; font-size: 12px; font-weight: 700; color: var(--dmq-navy);
+    background: #eef3fb; padding: 4px 9px; white-space: nowrap;
+  }
+
+  /* ---- Side panel ---- */
+  .side-panel {
+    position: sticky; top: 84px; background: #fff; border: 1px solid #e3e8f2;
+    border-top: 4px solid var(--dmq-yellow); padding: 20px;
+  }
+  .side-panel h2 { margin: 0 0 4px; font-size: 17px; color: var(--dmq-navy); word-break: break-word; }
+  .side-panel .meta { margin: 0 0 18px; font-size: 13px; color: #8a93a6; }
+  .side-panel .actions { display: flex; flex-direction: column; gap: 8px; }
+  .side-panel .placeholder { margin: 0; font-size: 14px; color: #8a93a6; line-height: 1.5; }
+
+  .empty-state, .loading-state, .error-state {
+    text-align: center; padding: 48px 16px; color: #8a93a6; font-size: 14.5px;
+  }
+  .error-state { color: #c62828; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .side-panel {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 30;
+      border: 0; border-top: 4px solid var(--dmq-yellow); box-shadow: 0 -8px 24px rgba(0, 20, 60, .15);
+      padding: 14px 16px;
+    }
+    .side-panel .actions { flex-direction: row; flex-wrap: wrap; }
+    .side-panel .actions .btn { flex: 1; min-width: 130px; justify-content: center; }
+    .side-panel .meta { margin-bottom: 12px; }
+    .page { padding-bottom: 220px; }
+  }
+
+  /* ---- Modals ---- */
+  .dmq-modal-overlay {
+    position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(0, 20, 60, .45);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .dmq-modal-overlay.open { display: flex; }
+  .dmq-modal {
+    width: 100%; max-width: 420px; background: #fff; padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 20, 60, .35); animation: dmq-pop .15s ease-out;
+    max-height: 100%; overflow-y: auto;
+  }
+  .dmq-modal.wide { max-width: 720px; }
+  @keyframes dmq-pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .dmq-modal h2 { margin: 0 0 16px; font-size: 19px; color: var(--dmq-navy); }
+  .dmq-modal h4 { margin: 20px 0 10px; font-size: 14px; color: var(--dmq-navy); }
+  .dmq-modal p { margin: 0 0 22px; font-size: 14.5px; color: #5b6577; line-height: 1.5; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; color: var(--dmq-navy); margin-bottom: 6px; }
+  .field input, .field textarea, .field select {
+    width: 100%; padding: 10px 12px; border: 1px solid #d7dded;
+    font: inherit; font-size: 14.5px; outline: none; resize: vertical;
+  }
+  .field textarea { min-height: 110px; }
+  .field select { background: #fff; }
+  .field-row { display: grid; grid-template-columns: 1fr 130px; gap: 12px; }
+  .field-hint { font-size: 12.5px; color: #8a93a6; margin-top: 4px; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--dmq-blue); box-shadow: 0 0 0 3px rgba(10, 99, 201, .12); }
+  .field-error { color: #c62828; font-size: 12.5px; margin-top: 4px; display: none; }
+  .field-error.visible { display: block; }
+
+  .dmq-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+  .form-error {
+    background: #fde8e8; color: #a61f1f; font-size: 13.5px; padding: 10px 12px; margin-bottom: 16px; display: none;
+  }
+  .form-error.visible { display: block; }
+
+  /* ---- Image editor modal ---- */
+  .img-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .img-toolbar .spacer { flex: 1; }
+  .img-toolbar .count { font-size: 13px; color: #5b6577; }
+  .btn-sm { padding: 8px 12px; font-size: 13px; }
+
+  .img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .img-item {
+    position: relative; aspect-ratio: 1 / 1; background: #eef3fb; cursor: pointer; overflow: hidden;
+    border: 3px solid transparent; padding: 0;
+  }
+  .img-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .img-item .check {
+    position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; background: rgba(255,255,255,.9);
+    border: 2px solid #8a93a6; display: grid; place-items: center; color: #fff;
+  }
+  .img-item .check svg { width: 14px; height: 14px; display: none; }
+  .img-item.selected { border-color: #c62828; }
+  .img-item.selected .check { background: #c62828; border-color: #c62828; }
+  .img-item.selected .check svg { display: block; }
+  .img-item:focus-visible { outline: 3px solid rgba(10, 99, 201, .4); outline-offset: 2px; }
+  .img-item .remove-pending {
+    position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border: 0; cursor: pointer;
+    background: rgba(0, 20, 60, .75); color: #fff; font-size: 16px; line-height: 1;
+  }
+  .img-empty { padding: 22px 8px; text-align: center; font-size: 14px; color: #8a93a6; background: #f7faff; }
+
+  .dropzone {
+    border: 2px dashed #b9c6e0; background: #f7faff; padding: 20px; text-align: center;
+    font-size: 14px; color: #5b6577; cursor: pointer; margin-bottom: 12px;
+  }
+  .dropzone.drag { border-color: var(--dmq-blue); background: #eaf2fd; }
+  .dropzone b { color: var(--dmq-navy); }
+  .dropzone input { display: none; }
+
+  .upload-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div id="adminNav"></div>
+
+<div class="page">
+  <h1>Projects</h1>
+  <p class="subtitle">Select a project to edit its details, manage its images, or delete it.</p>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search projects by name or service…" autocomplete="off">
+    </div>
+    <button type="button" class="btn btn-primary" id="addProjectBtn">+ Add New Project</button>
+  </div>
+
+  <div class="layout">
+    <div id="listContainer">
+      <div class="loading-state">Loading projects…</div>
+    </div>
+
+    <aside class="side-panel" id="sidePanel" aria-live="polite"></aside>
+  </div>
+</div>
+
+<!-- Add/Edit details modal -->
+<div class="dmq-modal-overlay" id="projectModal">
+  <div class="dmq-modal" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+    <h2 id="projectModalTitle">Add New Project</h2>
+    <div class="form-error" id="projectFormError"></div>
+    <form id="projectForm">
+      <div class="field">
+        <label for="projectName">Project name</label>
+        <input type="text" id="projectName" maxlength="150" required>
+        <div class="field-error" id="projectNameError">Project name is required.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="projectService">Service category</label>
+          <select id="projectService" required></select>
+          <div class="field-error" id="projectServiceError">Please choose a service category.</div>
+          <div class="field-hint" id="projectServiceHint"></div>
+        </div>
+        <div class="field">
+          <label for="projectYear">Year</label>
+          <input type="number" id="projectYear" min="1900" max="2100" step="1" required>
+          <div class="field-error" id="projectYearError">Enter a valid year.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="projectDescription">Description</label>
+        <textarea id="projectDescription" maxlength="2000" required></textarea>
+        <div class="field-error" id="projectDescriptionError">Description is required.</div>
+      </div>
+      <div class="dmq-modal-actions">
+        <button type="button" class="btn btn-ghost" id="projectCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="projectSaveBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="dmq-modal-overlay" id="deleteModal">
+  <div class="dmq-modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" aria-describedby="deleteModalMsg">
+    <h2 id="deleteModalTitle">Are you sure?</h2>
+    <p id="deleteModalMsg">This will permanently remove "<span id="deleteProjectName"></span>" and all of its images.</p>
+    <div class="form-error" id="deleteError"></div>
+    <div class="dmq-modal-actions">
+      <button type="button" class="btn btn-ghost" id="deleteCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit images modal -->
+<div class="dmq-modal-overlay" id="imagesModal">
+  <div class="dmq-modal wide" role="dialog" aria-modal="true" aria-labelledby="imagesModalTitle">
+    <h2 id="imagesModalTitle">Edit Images</h2>
+    <div class="form-error" id="imagesError"></div>
+
+    <div class="img-toolbar">
+      <span class="count" id="imagesCount"></span>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-ghost btn-sm" id="selectAllBtn">Select all</button>
+      <button type="button" class="btn btn-danger btn-sm" id="deleteSelectedBtn" disabled>Delete selected</button>
+    </div>
+    <div id="existingImages"></div>
+
+    <h4>Add images</h4>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose images to upload">
+      <b>Click to choose</b> or drag and drop images here<br>
+      <small>JPG, PNG, WEBP or GIF — you can pick several at once</small>
+      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+    </div>
+    <div id="pendingImages"></div>
+    <div class="upload-row">
+      <button type="button" class="btn btn-primary" id="uploadBtn" disabled>Upload</button>
+    </div>
+
+    <div class="dmq-modal-actions" style="margin-top:20px">
+      <button type="button" class="btn btn-ghost" id="imagesCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="scripts/adminNav.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  AdminNav.init({ active: 'projects' });
+
+  const $ = (id) => document.getElementById(id);
+
+  const listContainer = $('listContainer');
+  const sidePanel = $('sidePanel');
+  const searchInput = $('searchInput');
+
+  // details modal
+  const projectModal = $('projectModal');
+  const projectModalTitle = $('projectModalTitle');
+  const projectForm = $('projectForm');
+  const projectNameInput = $('projectName');
+  const projectDescriptionInput = $('projectDescription');
+  const projectNameError = $('projectNameError');
+  const projectDescriptionError = $('projectDescriptionError');
+  const projectServiceSelect = $('projectService');
+  const projectServiceError = $('projectServiceError');
+  const projectServiceHint = $('projectServiceHint');
+  const projectYearInput = $('projectYear');
+  const projectYearError = $('projectYearError');
+  const projectFormError = $('projectFormError');
+  const projectSaveBtn = $('projectSaveBtn');
+
+  // delete modal
+  const deleteModal = $('deleteModal');
+  const deleteProjectName = $('deleteProjectName');
+  const deleteError = $('deleteError');
+  const deleteConfirmBtn = $('deleteConfirmBtn');
+
+  // images modal
+  const imagesModal = $('imagesModal');
+  const imagesModalTitle = $('imagesModalTitle');
+  const imagesError = $('imagesError');
+  const imagesCount = $('imagesCount');
+  const existingImages = $('existingImages');
+  const pendingImages = $('pendingImages');
+  const selectAllBtn = $('selectAllBtn');
+  const deleteSelectedBtn = $('deleteSelectedBtn');
+  const dropzone = $('dropzone');
+  const fileInput = $('fileInput');
+  const uploadBtn = $('uploadBtn');
+
+  let projects = [];
+  let services = [];                    // admin-managed service categories
+  let selectedId = null;
+  let editingProjectId = null;          // null => "add" mode
+  let selectedImageIds = new Set();
+  let pendingFiles = [];                // [{ file, url }]
+  let busy = false;
+
+  const ICONS = {
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+    images: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+  };
+
+  // ---- Helpers ----
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  async function api(url, options) {
+    const res = await fetch(url, Object.assign({ credentials: 'same-origin' }, options));
+    if (res.status === 401) {
+      window.location.href = '/adminLogin.html';
+      throw new Error('Not authenticated');
+    }
+    if (!res.ok) {
+      let message = 'Something went wrong. Please try again.';
+      try {
+        const body = await res.json();
+        if (body && body.message) message = body.message;
+      } catch (_) { /* no JSON body */ }
+      if (res.status === 413) message = 'That upload is too large.';
+      throw new Error(message);
+    }
+    return res.status === 204 ? null : res.json();
+  }
+
+  function showError(el, message) {
+    el.textContent = message;
+    el.classList.add('visible');
+  }
+  function clearError(el) {
+    el.textContent = '';
+    el.classList.remove('visible');
+  }
+
+  function getSelected() {
+    return projects.find((p) => p.id === selectedId) || null;
+  }
+
+  function replaceProject(updated) {
+    const idx = projects.findIndex((p) => p.id === updated.id);
+    if (idx >= 0) projects[idx] = updated;
+    else projects.unshift(updated);
+  }
+
+  // ---- Loading & rendering ----
+
+  async function loadProjects() {
+    listContainer.innerHTML = '<div class="loading-state">Loading projects…</div>';
+    try {
+      projects = await api('/api/admin/projects');
+      if (selectedId !== null && !getSelected()) selectedId = null;
+      renderList();
+      renderPanel();
+    } catch (err) {
+      if (err.message === 'Not authenticated') return;
+      listContainer.innerHTML = '<div class="error-state">Could not load projects. Please refresh the page.</div>';
+    }
+  }
+
+  function filteredProjects() {
+    const q = searchInput.value.trim().toLowerCase();
+    return q
+      ? projects.filter((p) => p.name.toLowerCase().includes(q) || (p.serviceName || '').toLowerCase().includes(q))
+      : projects;
+  }
+
+  function renderList() {
+    const items = filteredProjects();
+    if (!items.length) {
+      listContainer.innerHTML = '<div class="empty-state">'
+        + (projects.length ? 'No projects match your search.' : 'No projects yet. Add your first one with the button above.')
+        + '</div>';
+      return;
+    }
+
+    const html = items.map((p) => {
+      const first = p.images && p.images[0];
+      const thumb = first
+        ? '<img src="' + escapeHtml(first.imageUrl) + '" alt="" loading="lazy">'
+        : ICONS.images;
+      const count = (p.images || []).length;
+      return '<div class="project-tile' + (p.id === selectedId ? ' selected' : '') + '" data-id="' + p.id + '" tabindex="0" role="button" aria-pressed="' + (p.id === selectedId) + '">'
+        + '<div class="tile-thumb">' + thumb + '</div>'
+        + '<div class="tile-body"><h3>' + escapeHtml(p.name) + '</h3>'
+        + (metaText(p) ? '<div class="tile-meta">' + escapeHtml(metaText(p)) + '</div>' : '')
+        + '<p>' + escapeHtml(p.description) + '</p></div>'
+        + '<span class="badge">' + count + (count === 1 ? ' image' : ' images') + '</span>'
+        + '</div>';
+    }).join('');
+
+    listContainer.innerHTML = '<div class="project-list">' + html + '</div>';
+
+    listContainer.querySelectorAll('.project-tile').forEach((tile) => {
+      const select = () => {
+        selectedId = Number(tile.dataset.id);
+        renderList();
+        renderPanel();
+      };
+      tile.addEventListener('click', select);
+      tile.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
+      });
+    });
+  }
+
+  function renderPanel() {
+    const p = getSelected();
+    if (!p) {
+      sidePanel.innerHTML = '<p class="placeholder">Select a project from the list to see what you can do with it.</p>';
+      return;
+    }
+    const count = (p.images || []).length;
+    sidePanel.innerHTML =
+        '<h2>' + escapeHtml(p.name) + '</h2>'
+      + '<p class="meta">' + escapeHtml((metaText(p) ? metaText(p) + ' · ' : '') + count + (count === 1 ? ' image' : ' images')) + '</p>'
+      + '<div class="actions">'
+      +   '<button type="button" class="btn btn-ghost btn-block" id="panelEdit">' + ICONS.edit + 'Edit details</button>'
+      +   '<button type="button" class="btn btn-ghost btn-block" id="panelImages">' + ICONS.images + 'Edit images</button>'
+      +   '<button type="button" class="btn btn-danger btn-block" id="panelDelete">' + ICONS.trash + 'Delete project</button>'
+      + '</div>';
+    $('panelEdit').addEventListener('click', () => openProjectModal(p.id));
+    $('panelImages').addEventListener('click', () => openImagesModal(p.id));
+    $('panelDelete').addEventListener('click', () => openDeleteModal(p.id));
+  }
+
+  searchInput.addEventListener('input', renderList);
+
+  // ---- Service categories (loaded from the admin's services list) ----
+
+  function metaText(p) {
+    return [p.serviceName, p.year].filter((v) => v !== null && v !== undefined && v !== '').join(' · ');
+  }
+
+  async function loadServices() {
+    try {
+      services = await api('/api/admin/services');
+    } catch (err) {
+      services = [];
+    }
+  }
+
+  function populateServiceSelect(preferredId) {
+    const options = ['<option value="" disabled>Select a service…</option>'].concat(
+      services.map((s) => '<option value="' + s.id + '">' + escapeHtml(s.name) + '</option>')
+    );
+    projectServiceSelect.innerHTML = options.join('');
+    const wanted = preferredId == null || preferredId === '' ? '' : String(preferredId);
+    projectServiceSelect.value = services.some((s) => String(s.id) === wanted) ? wanted : '';
+    projectServiceHint.textContent = services.length
+      ? ''
+      : 'No services found. Add some on the Services page first.';
+  }
+
+  // ---- Add / Edit details ----
+
+  function resetProjectForm() {
+    projectForm.reset();
+    projectNameError.classList.remove('visible');
+    projectDescriptionError.classList.remove('visible');
+    projectServiceError.classList.remove('visible');
+    projectYearError.classList.remove('visible');
+    clearError(projectFormError);
+  }
+
+  function openProjectModal(id) {
+    resetProjectForm();
+    editingProjectId = id == null ? null : id;
+    let preferredServiceId = null;
+    if (editingProjectId === null) {
+      projectModalTitle.textContent = 'Add New Project';
+      projectYearInput.value = new Date().getFullYear();
+    } else {
+      const p = projects.find((x) => x.id === id);
+      if (!p) return;
+      projectModalTitle.textContent = 'Edit Project Details';
+      projectNameInput.value = p.name;
+      projectDescriptionInput.value = p.description;
+      projectYearInput.value = p.year == null ? '' : p.year;
+      preferredServiceId = p.serviceId;
+    }
+    populateServiceSelect(preferredServiceId);
+    projectModal.classList.add('open');
+    projectNameInput.focus();
+    // Refresh in the background so services added a moment ago show up.
+    loadServices().then(() => {
+      if (projectModal.classList.contains('open')) {
+        populateServiceSelect(projectServiceSelect.value || preferredServiceId);
+      }
+    });
+  }
+
+  function closeProjectModal() {
+    projectModal.classList.remove('open');
+    editingProjectId = null;
+  }
+
+  $('addProjectBtn').addEventListener('click', () => openProjectModal(null));
+  $('projectCancelBtn').addEventListener('click', closeProjectModal);
+  projectModal.addEventListener('click', (e) => { if (e.target === projectModal) closeProjectModal(); });
+
+  projectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = projectNameInput.value.trim();
+    const description = projectDescriptionInput.value.trim();
+
+    const serviceId = projectServiceSelect.value;
+    const year = Number(projectYearInput.value);
+    const yearValid = Number.isInteger(year) && year >= 1900 && year <= 2100;
+
+    projectNameError.classList.toggle('visible', !name);
+    projectDescriptionError.classList.toggle('visible', !description);
+    projectServiceError.classList.toggle('visible', !serviceId);
+    projectYearError.classList.toggle('visible', !yearValid);
+    if (!name || !description || !serviceId || !yearValid) return;
+
+    const isEdit = editingProjectId !== null;
+    projectSaveBtn.disabled = true;
+    clearError(projectFormError);
+    try {
+      const saved = await api(
+        isEdit ? '/api/admin/projects/' + editingProjectId : '/api/admin/projects',
+        {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description, year, serviceId: Number(serviceId) })
+        }
+      );
+      replaceProject(saved);
+      selectedId = saved.id;
+      closeProjectModal();
+      renderList();
+      renderPanel();
+    } catch (err) {
+      if (err.message !== 'Not authenticated') showError(projectFormError, err.message);
+    } finally {
+      projectSaveBtn.disabled = false;
+    }
+  });
+
+  // ---- Delete project ----
+
+  function openDeleteModal(id) {
+    const p = projects.find((x) => x.id === id);
+    if (!p) return;
+    deleteProjectName.textContent = p.name;
+    clearError(deleteError);
+    deleteModal.classList.add('open');
+    $('deleteCancelBtn').focus();
+  }
+
+  function closeDeleteModal() {
+    deleteModal.classList.remove('open');
+  }
+
+  $('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+  deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModal(); });
+
+  deleteConfirmBtn.addEventListener('click', async () => {
+    const p = getSelected();
+    if (!p) return;
+    deleteConfirmBtn.disabled = true;
+    clearError(deleteError);
+    try {
+      await api('/api/admin/projects/' + p.id, { method: 'DELETE' });
+      projects = projects.filter((x) => x.id !== p.id);
+      selectedId = null;
+      closeDeleteModal();
+      renderList();
+      renderPanel();
+    } catch (err) {
+      if (err.message !== 'Not authenticated') showError(deleteError, err.message);
+    } finally {
+      deleteConfirmBtn.disabled = false;
+    }
+  });
+
+  // ---- Edit images ----
+
+  function openImagesModal(id) {
+    const p = projects.find((x) => x.id === id);
+    if (!p) return;
+    imagesModalTitle.textContent = 'Edit Images — ' + p.name;
+    selectedImageIds = new Set();
+    clearPending();
+    clearError(imagesError);
+    renderImagesModal();
+    imagesModal.classList.add('open');
+    $('imagesCloseBtn').focus();
+  }
+
+  function closeImagesModal() {
+    imagesModal.classList.remove('open');
+    clearPending();
+    selectedImageIds = new Set();
+  }
+
+  function clearPending() {
+    pendingFiles.forEach((f) => URL.revokeObjectURL(f.url));
+    pendingFiles = [];
+    fileInput.value = '';
+  }
+
+  function renderImagesModal() {
+    const p = getSelected();
+    if (!p) return;
+    const images = p.images || [];
+
+    // existing images
+    imagesCount.textContent = images.length + (images.length === 1 ? ' image' : ' images')
+      + (selectedImageIds.size ? ' · ' + selectedImageIds.size + ' selected' : '');
+    if (!images.length) {
+      existingImages.innerHTML = '<div class="img-empty">This project has no images yet.</div>';
+    } else {
+      existingImages.innerHTML = '<div class="img-grid">' + images.map((img) =>
+        '<div class="img-item' + (selectedImageIds.has(img.id) ? ' selected' : '') + '" data-id="' + img.id + '" tabindex="0" role="checkbox" aria-checked="' + selectedImageIds.has(img.id) + '">'
+        + '<img src="' + escapeHtml(img.imageUrl) + '" alt="" loading="lazy">'
+        + '<span class="check">' + ICONS.check + '</span></div>'
+      ).join('') + '</div>';
+      existingImages.querySelectorAll('.img-item').forEach((el) => {
+        const toggle = () => {
+          const imgId = Number(el.dataset.id);
+          if (selectedImageIds.has(imgId)) selectedImageIds.delete(imgId);
+          else selectedImageIds.add(imgId);
+          renderImagesModal();
+        };
+        el.addEventListener('click', toggle);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+      });
+    }
+    selectAllBtn.textContent = (images.length && selectedImageIds.size === images.length) ? 'Clear selection' : 'Select all';
+    selectAllBtn.disabled = !images.length || busy;
+    deleteSelectedBtn.disabled = !selectedImageIds.size || busy;
+    deleteSelectedBtn.textContent = selectedImageIds.size ? 'Delete selected (' + selectedImageIds.size + ')' : 'Delete selected';
+
+    // pending uploads
+    if (!pendingFiles.length) {
+      pendingImages.innerHTML = '';
+    } else {
+      pendingImages.innerHTML = '<div class="img-grid">' + pendingFiles.map((f, i) =>
+        '<div class="img-item" style="cursor:default">'
+        + '<img src="' + f.url + '" alt="">'
+        + '<button type="button" class="remove-pending" data-index="' + i + '" aria-label="Remove ' + escapeHtml(f.file.name) + '">×</button></div>'
+      ).join('') + '</div>';
+      pendingImages.querySelectorAll('.remove-pending').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const [removed] = pendingFiles.splice(Number(btn.dataset.index), 1);
+          URL.revokeObjectURL(removed.url);
+          renderImagesModal();
+        });
+      });
+    }
+    uploadBtn.disabled = !pendingFiles.length || busy;
+    uploadBtn.textContent = pendingFiles.length
+      ? 'Upload ' + pendingFiles.length + (pendingFiles.length === 1 ? ' image' : ' images')
+      : 'Upload';
+  }
+
+  function addPendingFiles(fileList) {
+    const accepted = Array.from(fileList).filter((f) => /^image\/(jpeg|png|webp|gif)$/.test(f.type));
+    if (accepted.length < fileList.length) {
+      showError(imagesError, 'Some files were skipped — only JPG, PNG, WEBP or GIF images are allowed.');
+    } else {
+      clearError(imagesError);
+    }
+    accepted.forEach((file) => pendingFiles.push({ file, url: URL.createObjectURL(file) }));
+    renderImagesModal();
+  }
+
+  selectAllBtn.addEventListener('click', () => {
+    const p = getSelected();
+    if (!p) return;
+    const images = p.images || [];
+    selectedImageIds = selectedImageIds.size === images.length ? new Set() : new Set(images.map((i) => i.id));
+    renderImagesModal();
+  });
+
+  deleteSelectedBtn.addEventListener('click', async () => {
+    const p = getSelected();
+    if (!p || !selectedImageIds.size) return;
+    const n = selectedImageIds.size;
+    if (!window.confirm('Delete ' + n + (n === 1 ? ' image' : ' images') + ' from this project?')) return;
+
+    busy = true;
+    renderImagesModal();
+    clearError(imagesError);
+    try {
+      const updated = await api('/api/admin/projects/' + p.id + '/images', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedImageIds) })
+      });
+      replaceProject(updated);
+      selectedImageIds = new Set();
+      renderList();
+      renderPanel();
+    } catch (err) {
+      if (err.message !== 'Not authenticated') showError(imagesError, err.message);
+    } finally {
+      busy = false;
+      renderImagesModal();
+    }
+  });
+
+  uploadBtn.addEventListener('click', async () => {
+    const p = getSelected();
+    if (!p || !pendingFiles.length) return;
+
+    busy = true;
+    renderImagesModal();
+    clearError(imagesError);
+    const form = new FormData();
+    pendingFiles.forEach((f) => form.append('files', f.file));
+    try {
+      const updated = await api('/api/admin/projects/' + p.id + '/images', { method: 'POST', body: form });
+      replaceProject(updated);
+      clearPending();
+      renderList();
+      renderPanel();
+    } catch (err) {
+      if (err.message !== 'Not authenticated') showError(imagesError, err.message);
+    } finally {
+      busy = false;
+      renderImagesModal();
+    }
+  });
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) addPendingFiles(fileInput.files);
+    fileInput.value = '';
+  });
+  ['dragenter', 'dragover'].forEach((evt) => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.add('drag');
+  }));
+  ['dragleave', 'drop'].forEach((evt) => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    if (e.dataTransfer && e.dataTransfer.files.length) addPendingFiles(e.dataTransfer.files);
+  });
+
+  $('imagesCloseBtn').addEventListener('click', closeImagesModal);
+  imagesModal.addEventListener('click', (e) => { if (e.target === imagesModal) closeImagesModal(); });
+
+  // ---- Escape closes the top-most open modal ----
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (deleteModal.classList.contains('open')) closeDeleteModal();
+    else if (projectModal.classList.contains('open')) closeProjectModal();
+    else if (imagesModal.classList.contains('open')) closeImagesModal();
+  });
+
+  // ---- Init ----
+  renderPanel();
+  loadProjects();
+  loadServices();
+})();
+</script>
+
+</body>
+</html>

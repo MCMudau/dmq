@@ -1,18 +1,14 @@
 package contractor.site.dmq.models;
 
-import java.time.LocalDateTime;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "project_image")
@@ -26,21 +22,16 @@ public class ProjectImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    
-    @Column(nullable = false)
-    private String fileName;
+    /** An image belongs to exactly one project. */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Project project;
 
-    @Column(nullable = false)
-    private String filePath;
-
-    @Column(columnDefinition = "TEXT")
-    private String caption;
-
-    @Column(nullable = false)
-    private Long fileSize;
-
-    @Column(nullable = false)
-    private String contentType;
+    /** Public link to the image, e.g. /uploads/projects/3/ab12.jpg */
+    @Column(nullable = false, length = 500)
+    private String imageUrl;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime uploadedAt;
