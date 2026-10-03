@@ -517,8 +517,55 @@
             border-radius: 12px;
             overflow: hidden;
             min-width: 350px;
+            max-width: 350px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .project-card:focus-visible {
+            outline: 3px solid var(--bright-yellow);
+            outline-offset: 2px;
+        }
+
+        .project-photo-count {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(0, 35, 71, 0.8);
+            color: var(--white);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+        }
+
+        .project-photo-count i {
+            font-size: 0.8rem;
+            color: var(--bright-yellow);
+        }
+
+        .project-view {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .project-card:hover .project-view {
+            color: var(--bright-yellow);
+        }
+
+        .projects-status {
+            flex: 1;
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-gray);
         }
 
         .project-card:hover {
@@ -571,6 +618,11 @@
             color: var(--text-gray);
             font-size: 0.9rem;
             margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .project-footer {
@@ -586,14 +638,188 @@
             font-weight: 600;
         }
 
-        .project-rating {
-            display: flex;
-            gap: 0.2rem;
+        /* ============================================
+           PROJECT PHOTO VIEWER (lightbox)
+           ============================================ */
+
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            background: rgba(0, 20, 45, 0.92);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            color: var(--white);
+            animation: fadeIn 0.2s ease;
         }
 
-        .project-rating i {
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            border-bottom: 3px solid var(--bright-yellow);
+        }
+
+        .lightbox-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lightbox-title h3 {
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lightbox-counter {
+            font-size: 0.85rem;
             color: var(--bright-yellow);
-            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .lightbox-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lightbox-tool {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .lightbox-tool:hover {
+            background: var(--bright-yellow);
+            color: var(--primary-blue);
+        }
+
+        .lightbox-tool:disabled {
+            opacity: 0.4;
+            cursor: default;
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--white);
+        }
+
+        .lightbox-zoom-level {
+            min-width: 3rem;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .lightbox-stage {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;           /* we handle swipe / pinch / pan ourselves */
+            user-select: none;
+        }
+
+        .lightbox-stage img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transform-origin: center center;
+            transition: transform 0.15s ease;
+            cursor: zoom-in;
+            -webkit-user-drag: none;
+        }
+
+        .lightbox-stage.zoomed img {
+            cursor: grab;
+        }
+
+        .lightbox-stage.dragging img {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .lightbox-empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            padding: 2rem;
+        }
+
+        .lightbox-empty i {
+            font-size: 3rem;
+            color: var(--bright-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        .lightbox-nav.prev { left: 1rem; }
+        .lightbox-nav.next { right: 1rem; }
+
+        .lightbox-nav:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-thumbs {
+            display: flex;
+            gap: 0.6rem;
+            padding: 0.8rem 1rem 1rem;
+            overflow-x: auto;
+            justify-content: safe center;
+            scrollbar-width: thin;
+            scrollbar-color: var(--bright-yellow) transparent;
+        }
+
+        .lightbox-thumb {
+            flex: 0 0 auto;
+            width: 72px;
+            height: 54px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+
+        .lightbox-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .lightbox-thumb:hover { opacity: 0.9; }
+
+        .lightbox-thumb.active {
+            border-color: var(--bright-yellow);
+            opacity: 1;
         }
 
         .carousel-btn {
@@ -1103,6 +1329,7 @@
 
             .project-card {
                 min-width: 100%;
+                max-width: 100%;
             }
 
             .testimonial-card {
@@ -1111,6 +1338,31 @@
 
             .quotation-form-wrapper {
                 grid-template-columns: 1fr;
+            }
+
+            .lightbox-header {
+                flex-wrap: wrap;
+                gap: 0.6rem;
+                padding: 0.75rem;
+            }
+
+            .lightbox-title {
+                flex-basis: calc(100% - 52px);
+            }
+
+            .lightbox-tools {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .lightbox-tool {
+                width: 38px;
+                height: 38px;
+            }
+
+            .lightbox-nav {
+                display: none;            /* swipe instead on small screens */
             }
 
             .footer-content {
@@ -1152,6 +1404,7 @@
 
             .project-card {
                 min-width: calc(100% - 2rem);
+                max-width: calc(100% - 2rem);
             }
 
             .testimonial-card {
@@ -1258,7 +1511,8 @@
             </button>
             
             <div class="projects-container" id="projectsContainer">
-                <!-- Projects will be loaded here dynamically -->
+                <!-- Projects are loaded here from /api/projects -->
+                <div class="projects-status">Loading projects…</div>
             </div>
             
             <button class="carousel-btn next" onclick="scrollProjects('right')">
@@ -1409,6 +1663,50 @@
         </div>
     </footer>
 
+    <!-- Project Photo Viewer -->
+    <div id="projectLightbox" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+        <div class="lightbox-header">
+            <div class="lightbox-title">
+                <h3 id="lightboxTitle"></h3>
+                <div class="lightbox-counter" id="lightboxCounter"></div>
+            </div>
+            <div class="lightbox-tools">
+                <button type="button" class="lightbox-tool" id="lightboxZoomOut" title="Zoom out" aria-label="Zoom out">
+                    <i class="fas fa-magnifying-glass-minus"></i>
+                </button>
+                <span class="lightbox-zoom-level" id="lightboxZoomLevel">100%</span>
+                <button type="button" class="lightbox-tool" id="lightboxZoomIn" title="Zoom in" aria-label="Zoom in">
+                    <i class="fas fa-magnifying-glass-plus"></i>
+                </button>
+                <button type="button" class="lightbox-tool" id="lightboxZoomReset" title="Reset zoom" aria-label="Reset zoom">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <a class="lightbox-tool" id="lightboxDownload" title="Download photo" aria-label="Download photo" download>
+                    <i class="fas fa-download"></i>
+                </a>
+            </div>
+            <button type="button" class="lightbox-tool" id="lightboxClose" title="Close" aria-label="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="lightbox-stage" id="lightboxStage">
+            <button type="button" class="carousel-btn lightbox-nav prev" id="lightboxPrev" aria-label="Previous photo">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <img id="lightboxImage" alt="" draggable="false">
+            <div class="lightbox-empty" id="lightboxEmpty" hidden>
+                <div><i class="fas fa-images"></i></div>
+                <p>Photos for this project will be added soon.</p>
+            </div>
+            <button type="button" class="carousel-btn lightbox-nav next" id="lightboxNext" aria-label="Next photo">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="lightbox-thumbs" id="lightboxThumbs"></div>
+    </div>
+
     <!-- Success Modal -->
     <div id="successModal" class="modal">
         <div class="modal-content">
@@ -1426,73 +1724,8 @@
     <script>
         // ============================================
         // MOCK DATA - In production, this will come from API
-        // (services are already loaded from /api/services, see loadServices)
+        // (services and projects are already loaded from /api/services and /api/projects)
         // ============================================
-
-        const projectsData = [
-            {
-                id: 1,
-                name: "Modern Bathroom Renovation",
-                location: "Johannesburg",
-                category: "Renovations",
-                completionYear: 2023,
-                description: "Complete bathroom remodeling with new fixtures and tiling",
-                rating: 5,
-                comments: [
-                    { author: "John Doe", text: "Excellent work! Very professional team.", rating: 5 },
-                    { author: "Sarah Smith", text: "Fast service and great quality. Highly recommended!", rating: 5 }
-                ]
-            },
-            {
-                id: 2,
-                name: "Kitchen Pipe Installation",
-                location: "Sandton",
-                category: "Installation",
-                completionYear: 2023,
-                description: "Complete kitchen plumbing system upgrade",
-                rating: 4.5,
-                comments: [
-                    { author: "Mike Johnson", text: "Professional and efficient. Great team!", rating: 4 }
-                ]
-            },
-            {
-                id: 3,
-                name: "Emergency Leak Repair",
-                location: "Midrand",
-                category: "Repairs",
-                completionYear: 2024,
-                description: "Swift response to major water leak emergency",
-                rating: 5,
-                comments: [
-                    { author: "Emma Wilson", text: "They arrived quickly and fixed the problem immediately!", rating: 5 },
-                    { author: "David Lee", text: "Saved us from water damage. Thank you!", rating: 5 }
-                ]
-            },
-            {
-                id: 4,
-                name: "Full House Plumbing System",
-                location: "Bryanston",
-                category: "Installation",
-                completionYear: 2022,
-                description: "Complete plumbing system installation for new house",
-                rating: 5,
-                comments: [
-                    { author: "Rachel Brown", text: "Outstanding craftsmanship and attention to detail!", rating: 5 }
-                ]
-            },
-            {
-                id: 5,
-                name: "Drain Clearing Service",
-                location: "Bedfordview",
-                category: "Repairs",
-                completionYear: 2024,
-                description: "Professional drain unblocking using advanced equipment",
-                rating: 4,
-                comments: [
-                    { author: "James Anderson", text: "Quick service at a fair price.", rating: 4 }
-                ]
-            }
-        ];
 
         const testimonialsData = [
             {
@@ -1631,33 +1864,314 @@
 
         function loadProjects() {
             const container = document.getElementById('projectsContainer');
-            container.innerHTML = '';
 
-            projectsData.forEach(project => {
-                const projectCard = document.createElement('div');
-                projectCard.className = 'project-card';
-                
-                const ratingStars = generateStars(project.rating);
-                
-                projectCard.innerHTML = `
-                    <div class="project-image">
-                        <i class="fas fa-image"></i>
-                    </div>
-                    <div class="project-content">
-                        <span class="project-category">${project.category}</span>
-                        <h3 class="project-title">${project.name}</h3>
-                        <p class="project-description">${project.description}</p>
-                        <div class="project-footer">
-                            <span class="completion-year">${project.completionYear}</span>
-                            <div class="project-rating">
-                                ${ratingStars}
+            fetch('/api/projects')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load projects');
+                    return res.json();
+                })
+                .then(projects => {
+                    if (!projects.length) {
+                        container.innerHTML = '<div class="projects-status">Our completed projects will be shown here soon.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    projects.forEach(project => {
+                        const images = project.images || [];
+                        const cover = images[0];
+
+                        const projectCard = document.createElement('div');
+                        projectCard.className = 'project-card';
+                        projectCard.tabIndex = 0;
+                        projectCard.setAttribute('role', 'button');
+                        projectCard.setAttribute('aria-label', 'View photos of ' + (project.name || 'this project'));
+
+                        projectCard.innerHTML = `
+                            <div class="project-image">
+                                ${cover
+                                    ? `<img src="${escapeHtml(cover.imageUrl)}" alt="${escapeHtml(project.name)}" loading="lazy">`
+                                    : '<i class="fas fa-image"></i>'}
+                                ${images.length > 1
+                                    ? `<span class="project-photo-count"><i class="fas fa-images"></i> ${images.length}</span>`
+                                    : ''}
                             </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(projectCard);
+                            <div class="project-content">
+                                ${project.serviceName ? `<span class="project-category">${escapeHtml(project.serviceName)}</span>` : ''}
+                                <h3 class="project-title">${escapeHtml(project.name)}</h3>
+                                <p class="project-description">${escapeHtml(project.description)}</p>
+                                <div class="project-footer">
+                                    <span class="completion-year">${project.year ? escapeHtml(String(project.year)) : ''}</span>
+                                    <span class="project-view">View photos <i class="fas fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+                        `;
+
+                        projectCard.addEventListener('click', () => openProjectLightbox(project));
+                        projectCard.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                openProjectLightbox(project);
+                            }
+                        });
+                        container.appendChild(projectCard);
+                    });
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="projects-status">We couldn\'t load our projects right now. Please refresh the page.</div>';
+                });
+        }
+
+        // ============================================
+        // PROJECT PHOTO VIEWER
+        // Browse every photo of a project, zoom (buttons, mouse wheel, double-click,
+        // pinch) and pan, swipe between photos on touch screens, and download.
+        // ============================================
+
+        const lightbox = {
+            el: document.getElementById('projectLightbox'),
+            stage: document.getElementById('lightboxStage'),
+            img: document.getElementById('lightboxImage'),
+            empty: document.getElementById('lightboxEmpty'),
+            title: document.getElementById('lightboxTitle'),
+            counter: document.getElementById('lightboxCounter'),
+            thumbs: document.getElementById('lightboxThumbs'),
+            zoomLevel: document.getElementById('lightboxZoomLevel'),
+            zoomIn: document.getElementById('lightboxZoomIn'),
+            zoomOut: document.getElementById('lightboxZoomOut'),
+            zoomReset: document.getElementById('lightboxZoomReset'),
+            download: document.getElementById('lightboxDownload'),
+            prev: document.getElementById('lightboxPrev'),
+            next: document.getElementById('lightboxNext'),
+            close: document.getElementById('lightboxClose'),
+
+            project: null,
+            images: [],
+            index: 0,
+            scale: 1,
+            x: 0,
+            y: 0,
+            lastFocus: null,
+            justDragged: false
+        };
+
+        const MIN_ZOOM = 1;
+        const MAX_ZOOM = 5;
+        const ZOOM_STEP = 0.5;
+
+        function openProjectLightbox(project) {
+            lightbox.project = project;
+            lightbox.images = project.images || [];
+            lightbox.lastFocus = document.activeElement;
+            lightbox.title.textContent = project.name || 'Project photos';
+
+            const hasImages = lightbox.images.length > 0;
+            lightbox.img.hidden = !hasImages;
+            lightbox.empty.hidden = hasImages;
+            [lightbox.zoomIn, lightbox.zoomOut, lightbox.zoomReset].forEach(btn => btn.disabled = !hasImages);
+            lightbox.download.style.visibility = hasImages ? 'visible' : 'hidden';
+
+            renderThumbnails();
+            showPhoto(0);
+
+            lightbox.el.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            lightbox.close.focus();
+        }
+
+        function closeProjectLightbox() {
+            lightbox.el.classList.remove('open');
+            document.body.style.overflow = 'auto';
+            lightbox.img.removeAttribute('src');
+            if (lightbox.lastFocus) lightbox.lastFocus.focus();
+        }
+
+        function renderThumbnails() {
+            lightbox.thumbs.innerHTML = '';
+            lightbox.thumbs.style.display = lightbox.images.length < 2 ? 'none' : '';
+
+            lightbox.images.forEach((image, i) => {
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = 'lightbox-thumb';
+                thumb.setAttribute('aria-label', 'Show photo ' + (i + 1));
+                thumb.innerHTML = `<img src="${escapeHtml(image.imageUrl)}" alt="" loading="lazy">`;
+                thumb.addEventListener('click', () => showPhoto(i));
+                lightbox.thumbs.appendChild(thumb);
             });
         }
+
+        function showPhoto(index) {
+            const total = lightbox.images.length;
+            const multiple = total > 1;
+            lightbox.prev.style.visibility = multiple ? 'visible' : 'hidden';
+            lightbox.next.style.visibility = multiple ? 'visible' : 'hidden';
+
+            if (!total) {
+                lightbox.counter.textContent = 'No photos yet';
+                return;
+            }
+
+            lightbox.index = (index + total) % total;   // wraps around at both ends
+            const image = lightbox.images[lightbox.index];
+
+            lightbox.img.src = image.imageUrl;
+            lightbox.img.alt = (lightbox.project.name || 'Project') + ' — photo ' + (lightbox.index + 1);
+            lightbox.counter.textContent = 'Photo ' + (lightbox.index + 1) + ' of ' + total;
+
+            lightbox.download.href = image.imageUrl;
+            lightbox.download.setAttribute('download', downloadName(image.imageUrl, lightbox.index));
+
+            lightbox.thumbs.querySelectorAll('.lightbox-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === lightbox.index);
+                if (i === lightbox.index) thumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+            });
+
+            resetZoom();
+        }
+
+        /** e.g. "Modern-Bathroom-Renovation-3.jpg", keeping the original file extension. */
+        function downloadName(url, index) {
+            const extMatch = /\.([a-z0-9]{2,5})(?:[?#]|$)/i.exec(url || '');
+            const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+            const base = (lightbox.project.name || 'project')
+                .replace(/[^a-z0-9]+/gi, '-')
+                .replace(/^-+|-+$/g, '') || 'project';
+            return base + '-' + (index + 1) + '.' + ext;
+        }
+
+        // ---- Zoom & pan ----
+
+        function applyTransform() {
+            lightbox.img.style.transform = `translate(${lightbox.x}px, ${lightbox.y}px) scale(${lightbox.scale})`;
+            lightbox.zoomLevel.textContent = Math.round(lightbox.scale * 100) + '%';
+            lightbox.stage.classList.toggle('zoomed', lightbox.scale > 1);
+            lightbox.zoomOut.disabled = !lightbox.images.length || lightbox.scale <= MIN_ZOOM;
+            lightbox.zoomIn.disabled = !lightbox.images.length || lightbox.scale >= MAX_ZOOM;
+        }
+
+        /** Keeps the zoomed photo from being dragged completely out of view. */
+        function clampPan() {
+            const maxX = (lightbox.img.offsetWidth * (lightbox.scale - 1)) / 2;
+            const maxY = (lightbox.img.offsetHeight * (lightbox.scale - 1)) / 2;
+            lightbox.x = Math.min(maxX, Math.max(-maxX, lightbox.x));
+            lightbox.y = Math.min(maxY, Math.max(-maxY, lightbox.y));
+        }
+
+        function setZoom(newScale) {
+            lightbox.scale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newScale));
+            if (lightbox.scale === 1) {
+                lightbox.x = 0;
+                lightbox.y = 0;
+            } else {
+                clampPan();
+            }
+            applyTransform();
+        }
+
+        function resetZoom() {
+            setZoom(1);
+        }
+
+        lightbox.zoomIn.addEventListener('click', () => setZoom(lightbox.scale + ZOOM_STEP));
+        lightbox.zoomOut.addEventListener('click', () => setZoom(lightbox.scale - ZOOM_STEP));
+        lightbox.zoomReset.addEventListener('click', resetZoom);
+
+        lightbox.stage.addEventListener('wheel', (e) => {
+            if (!lightbox.images.length) return;
+            e.preventDefault();
+            setZoom(lightbox.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+        }, { passive: false });
+
+        lightbox.img.addEventListener('dblclick', () => {
+            setZoom(lightbox.scale > 1 ? 1 : 2.5);
+        });
+
+        // Pointer handling: one finger/mouse = pan when zoomed or swipe when not; two fingers = pinch zoom.
+        const pointers = new Map();
+        let gesture = null;
+
+        lightbox.stage.addEventListener('pointerdown', (e) => {
+            if (!lightbox.images.length || e.target.closest('button')) return;
+            lightbox.stage.setPointerCapture(e.pointerId);
+            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (pointers.size === 2) {
+                const [a, b] = [...pointers.values()];
+                gesture = { type: 'pinch', startDist: Math.hypot(a.x - b.x, a.y - b.y), startScale: lightbox.scale };
+            } else if (pointers.size === 1) {
+                gesture = { type: 'drag', startX: e.clientX, startY: e.clientY, originX: lightbox.x, originY: lightbox.y, moved: false };
+            }
+        });
+
+        lightbox.stage.addEventListener('pointermove', (e) => {
+            if (!pointers.has(e.pointerId) || !gesture) return;
+            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (gesture.type === 'pinch' && pointers.size === 2) {
+                const [a, b] = [...pointers.values()];
+                const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                setZoom(gesture.startScale * (dist / gesture.startDist));
+            } else if (gesture.type === 'drag') {
+                const dx = e.clientX - gesture.startX;
+                const dy = e.clientY - gesture.startY;
+                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) gesture.moved = true;
+
+                if (lightbox.scale > 1) {
+                    lightbox.stage.classList.add('dragging');
+                    lightbox.x = gesture.originX + dx;
+                    lightbox.y = gesture.originY + dy;
+                    clampPan();
+                    applyTransform();
+                }
+            }
+        });
+
+        function endPointer(e) {
+            if (!pointers.has(e.pointerId)) return;
+            pointers.delete(e.pointerId);
+            lightbox.stage.classList.remove('dragging');
+            lightbox.justDragged = !!(gesture && (gesture.moved || gesture.type === 'pinch'));
+
+            // A quick horizontal swipe at normal size moves to the previous/next photo.
+            if (gesture && gesture.type === 'drag' && lightbox.scale === 1 && pointers.size === 0) {
+                const dx = e.clientX - gesture.startX;
+                const dy = e.clientY - gesture.startY;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+                    showPhoto(lightbox.index + (dx < 0 ? 1 : -1));
+                }
+            }
+            gesture = pointers.size === 0 ? null : gesture;
+        }
+
+        lightbox.stage.addEventListener('pointerup', endPointer);
+        lightbox.stage.addEventListener('pointercancel', endPointer);
+
+        // ---- Navigation & closing ----
+
+        lightbox.prev.addEventListener('click', () => showPhoto(lightbox.index - 1));
+        lightbox.next.addEventListener('click', () => showPhoto(lightbox.index + 1));
+        lightbox.close.addEventListener('click', closeProjectLightbox);
+
+        // Clicking the dark area around the photo closes the viewer (but not after a drag).
+        lightbox.stage.addEventListener('click', (e) => {
+            if (e.target === lightbox.stage && !lightbox.justDragged) closeProjectLightbox();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.el.classList.contains('open')) return;
+            switch (e.key) {
+                case 'Escape': closeProjectLightbox(); break;
+                case 'ArrowLeft': showPhoto(lightbox.index - 1); break;
+                case 'ArrowRight': showPhoto(lightbox.index + 1); break;
+                case '+':
+                case '=': setZoom(lightbox.scale + ZOOM_STEP); break;
+                case '-': setZoom(lightbox.scale - ZOOM_STEP); break;
+                case '0': resetZoom(); break;
+                default: return;
+            }
+            e.preventDefault();
+        });
 
         // ============================================
         // LOAD TESTIMONIALS
