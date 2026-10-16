@@ -34,3 +34,6 @@ build/
 test-email.json
 test-email.txt
 app.log
+
+### Uploaded files (project images, videos) ###
+/uploads/

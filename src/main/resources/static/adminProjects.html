@@ -96,18 +96,27 @@
   }
   .error-state { color: #c62828; }
 
+  /* Actions that drop down under the selected project (small screens only) */
+  .inline-actions { display: none; }
+
   @media (max-width: 860px) {
     .layout { grid-template-columns: 1fr; }
-    .side-panel {
-      position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 30;
-      border: 0; border-top: 4px solid var(--dmq-yellow); box-shadow: 0 -8px 24px rgba(0, 20, 60, .15);
-      padding: 14px 16px;
+    .side-panel { display: none; }
+    .project-tile.selected { border-bottom-color: transparent; }
+    .inline-actions {
+      display: block; margin-top: -10px;             /* sits flush under its tile */
+      background: #f7faff; border: 1px solid #e3e8f2; border-top: 0;
+      border-left: 4px solid var(--dmq-yellow); padding: 12px 14px 14px;
+      animation: dmq-drop .18s ease-out;
     }
-    .side-panel .actions { flex-direction: row; flex-wrap: wrap; }
-    .side-panel .actions .btn { flex: 1; min-width: 130px; justify-content: center; }
-    .side-panel .meta { margin-bottom: 12px; }
-    .page { padding-bottom: 220px; }
+    .inline-actions .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .inline-actions .btn { justify-content: center; padding: 11px 10px; }
+    .inline-actions .btn-danger { grid-column: 1 / -1; }
   }
+  @media (max-width: 380px) {
+    .inline-actions .actions { grid-template-columns: 1fr; }
+  }
+  @keyframes dmq-drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
   /* ---- Modals ---- */
   .dmq-modal-overlay {
@@ -184,6 +193,31 @@
   .dropzone input { display: none; }
 
   .upload-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+
+  /* ---- Video editor modal (same look as images; videos keep a 16:9 frame) ---- */
+  .video-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .video-item { aspect-ratio: 16 / 9; background: #0b1530; }
+  .video-item video { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .video-item .play {
+    position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.85);
+    pointer-events: none;
+  }
+  .video-item .play svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+  .video-item .preview {
+    position: absolute; bottom: 6px; right: 6px; border: 0; cursor: pointer; padding: 4px 8px;
+    background: rgba(0, 20, 60, .8); color: #fff; font: inherit; font-size: 12px; font-weight: 700;
+  }
+  .video-item .size {
+    position: absolute; bottom: 6px; left: 6px; padding: 2px 6px; font-size: 11.5px; font-weight: 700;
+    background: rgba(0, 20, 60, .8); color: #fff;
+  }
+  .video-player-wrap { background: #000; margin-bottom: 14px; }
+  .video-player-wrap video { width: 100%; max-height: 60vh; display: block; }
+  .upload-progress { height: 6px; background: #eef3fb; margin-top: 12px; display: none; }
+  .upload-progress.visible { display: block; }
+  .upload-progress span { display: block; height: 100%; width: 0; background: var(--dmq-blue); transition: width .2s ease; }
+  .upload-progress-text { font-size: 12.5px; color: #5b6577; margin-top: 4px; display: none; }
+  .upload-progress-text.visible { display: block; }
 </style>
 </head>
 <body>
@@ -294,6 +328,49 @@
   </div>
 </div>
 
+<!-- Edit videos modal -->
+<div class="dmq-modal-overlay" id="videosModal">
+  <div class="dmq-modal wide" role="dialog" aria-modal="true" aria-labelledby="videosModalTitle">
+    <h2 id="videosModalTitle">Edit Videos</h2>
+    <div class="form-error" id="videosError"></div>
+
+    <div class="img-toolbar">
+      <span class="count" id="videosCount"></span>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-ghost btn-sm" id="videoSelectAllBtn">Select all</button>
+      <button type="button" class="btn btn-danger btn-sm" id="videoDeleteSelectedBtn" disabled>Delete selected</button>
+    </div>
+    <div id="existingVideos"></div>
+
+    <h4>Add videos</h4>
+    <div class="dropzone" id="videoDropzone" tabindex="0" role="button" aria-label="Choose videos to upload">
+      <b>Click to choose</b> or drag and drop videos here<br>
+      <small>MP4, WEBM, MOV or OGG — up to 500 MB each, you can pick several at once</small>
+      <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime,video/ogg" multiple>
+    </div>
+    <div id="pendingVideos"></div>
+    <div class="upload-progress" id="videoProgress"><span id="videoProgressBar"></span></div>
+    <div class="upload-progress-text" id="videoProgressText"></div>
+    <div class="upload-row">
+      <button type="button" class="btn btn-primary" id="videoUploadBtn" disabled>Upload</button>
+    </div>
+
+    <div class="dmq-modal-actions" style="margin-top:20px">
+      <button type="button" class="btn btn-ghost" id="videosCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Video preview modal -->
+<div class="dmq-modal-overlay" id="videoPreviewModal">
+  <div class="dmq-modal wide" role="dialog" aria-modal="true" aria-label="Video preview">
+    <div class="video-player-wrap"><video id="videoPreviewPlayer" controls playsinline></video></div>
+    <div class="dmq-modal-actions">
+      <button type="button" class="btn btn-ghost" id="videoPreviewCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
 <script src="scripts/adminNav.js"></script>
 <script>
 (function () {
@@ -353,6 +430,8 @@
   const ICONS = {
     edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
     images: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    videos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>',
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
   };
@@ -450,11 +529,26 @@
 
     listContainer.innerHTML = '<div class="project-list">' + html + '</div>';
 
+    // Small screens: the actions drop down right under the selected tile (hidden by CSS on desktop).
+    const selectedTile = listContainer.querySelector('.project-tile.selected');
+    const selectedProject = getSelected();
+    if (selectedTile && selectedProject) {
+      const dropdown = document.createElement('div');
+      dropdown.className = 'inline-actions';
+      dropdown.innerHTML = actionsHtml();
+      selectedTile.after(dropdown);
+      wireActions(dropdown, selectedProject);
+    }
+
     listContainer.querySelectorAll('.project-tile').forEach((tile) => {
       const select = () => {
-        selectedId = Number(tile.dataset.id);
+        const id = Number(tile.dataset.id);
+        // On small screens, tapping the open project again folds its options away.
+        selectedId = (id === selectedId && isSmallScreen()) ? null : id;
         renderList();
         renderPanel();
+        const dropdown = listContainer.querySelector('.inline-actions');
+        if (dropdown && isSmallScreen()) dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       };
       tile.addEventListener('click', select);
       tile.addEventListener('keydown', (e) => {
@@ -473,14 +567,38 @@
     sidePanel.innerHTML =
         '<h2>' + escapeHtml(p.name) + '</h2>'
       + '<p class="meta">' + escapeHtml((metaText(p) ? metaText(p) + ' · ' : '') + count + (count === 1 ? ' image' : ' images')) + '</p>'
-      + '<div class="actions">'
-      +   '<button type="button" class="btn btn-ghost btn-block" id="panelEdit">' + ICONS.edit + 'Edit details</button>'
-      +   '<button type="button" class="btn btn-ghost btn-block" id="panelImages">' + ICONS.images + 'Edit images</button>'
-      +   '<button type="button" class="btn btn-danger btn-block" id="panelDelete">' + ICONS.trash + 'Delete project</button>'
+      + actionsHtml();
+    wireActions(sidePanel, p);
+  }
+
+  // Shared by the desktop side panel and the small-screen dropdown.
+  function actionsHtml() {
+    return '<div class="actions">'
+      +   '<button type="button" class="btn btn-ghost btn-block" data-action="edit">' + ICONS.edit + 'Edit details</button>'
+      +   '<button type="button" class="btn btn-ghost btn-block" data-action="images">' + ICONS.images + 'Edit images</button>'
+      +   '<button type="button" class="btn btn-ghost btn-block" data-action="videos">' + ICONS.videos + 'Edit videos</button>'
+      +   '<button type="button" class="btn btn-danger btn-block" data-action="delete">' + ICONS.trash + 'Delete project</button>'
       + '</div>';
-    $('panelEdit').addEventListener('click', () => openProjectModal(p.id));
-    $('panelImages').addEventListener('click', () => openImagesModal(p.id));
-    $('panelDelete').addEventListener('click', () => openDeleteModal(p.id));
+  }
+
+  function wireActions(container, p) {
+    const handlers = {
+      edit: () => openProjectModal(p.id),
+      images: () => openImagesModal(p.id),
+      videos: () => ProjectVideos.open(p),
+      delete: () => openDeleteModal(p.id)
+    };
+    container.querySelectorAll('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlers[btn.dataset.action]();
+      });
+    });
+  }
+
+  const smallScreenQuery = window.matchMedia('(max-width: 860px)');
+  function isSmallScreen() {
+    return smallScreenQuery.matches;
   }
 
   searchInput.addEventListener('input', renderList);
@@ -806,6 +924,283 @@
 
   $('imagesCloseBtn').addEventListener('click', closeImagesModal);
   imagesModal.addEventListener('click', (e) => { if (e.target === imagesModal) closeImagesModal(); });
+
+  // ---- Edit videos ----
+  // Self-contained: talks only to /api/admin/projects/{id}/videos and never touches the
+  // project/image state above, so the video feature can change without affecting images.
+  const ProjectVideos = (function () {
+    const MAX_MB = 500;
+    const TYPES = /^video\/(mp4|webm|quicktime|ogg)$/;
+
+    const modal = $('videosModal');
+    const title = $('videosModalTitle');
+    const errorBox = $('videosError');
+    const countEl = $('videosCount');
+    const existingEl = $('existingVideos');
+    const pendingEl = $('pendingVideos');
+    const selectAll = $('videoSelectAllBtn');
+    const deleteSelected = $('videoDeleteSelectedBtn');
+    const zone = $('videoDropzone');
+    const input = $('videoFileInput');
+    const uploadButton = $('videoUploadBtn');
+    const progress = $('videoProgress');
+    const progressBar = $('videoProgressBar');
+    const progressText = $('videoProgressText');
+    const previewModal = $('videoPreviewModal');
+    const player = $('videoPreviewPlayer');
+
+    let project = null;
+    let videos = [];
+    let loading = false;
+    let selected = new Set();
+    let pending = [];          // [{ file, url }]
+    let working = false;
+
+    const base = () => '/api/admin/projects/' + project.id + '/videos';
+    const plural = (n) => n + (n === 1 ? ' video' : ' videos');
+    const mb = (bytes) => (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+
+    async function open(p) {
+      project = p;
+      title.textContent = 'Edit Videos — ' + p.name;
+      videos = [];
+      selected = new Set();
+      clearPendingVideos();
+      clearError(errorBox);
+      setProgress(null);
+      loading = true;
+      render();
+      modal.classList.add('open');
+      $('videosCloseBtn').focus();
+      try {
+        videos = await api(base());
+      } catch (err) {
+        if (err.message !== 'Not authenticated') showError(errorBox, 'Could not load videos. ' + err.message);
+      } finally {
+        loading = false;
+        render();
+      }
+    }
+
+    function close() {
+      if (working) return;              // don't abandon an upload half-way
+      modal.classList.remove('open');
+      clearPendingVideos();
+      selected = new Set();
+      project = null;
+    }
+
+    function clearPendingVideos() {
+      pending.forEach((f) => URL.revokeObjectURL(f.url));
+      pending = [];
+      input.value = '';
+    }
+
+    function render() {
+      // existing videos
+      countEl.textContent = loading ? 'Loading…'
+        : plural(videos.length) + (selected.size ? ' · ' + selected.size + ' selected' : '');
+      if (loading) {
+        existingEl.innerHTML = '<div class="img-empty">Loading videos…</div>';
+      } else if (!videos.length) {
+        existingEl.innerHTML = '<div class="img-empty">This project has no videos yet.</div>';
+      } else {
+        existingEl.innerHTML = '<div class="img-grid video-grid">' + videos.map((v) =>
+          '<div class="img-item video-item' + (selected.has(v.id) ? ' selected' : '') + '" data-id="' + v.id + '" tabindex="0" role="checkbox" aria-checked="' + selected.has(v.id) + '">'
+          + '<video src="' + escapeHtml(v.videoUrl) + '#t=0.5" preload="metadata" muted playsinline></video>'
+          + '<span class="play">' + ICONS.play + '</span>'
+          + '<span class="check">' + ICONS.check + '</span>'
+          + '<button type="button" class="preview" data-url="' + escapeHtml(v.videoUrl) + '">Play</button></div>'
+        ).join('') + '</div>';
+
+        existingEl.querySelectorAll('.video-item').forEach((el) => {
+          const toggle = () => {
+            const id = Number(el.dataset.id);
+            if (selected.has(id)) selected.delete(id); else selected.add(id);
+            render();
+          };
+          el.addEventListener('click', (e) => { if (!e.target.closest('.preview')) toggle(); });
+          el.addEventListener('keydown', (e) => {
+            if (e.target !== el) return;
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+          });
+        });
+        existingEl.querySelectorAll('.preview').forEach((btn) => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); openPreview(btn.dataset.url); });
+        });
+      }
+      selectAll.textContent = (videos.length && selected.size === videos.length) ? 'Clear selection' : 'Select all';
+      selectAll.disabled = loading || !videos.length || working;
+      deleteSelected.disabled = !selected.size || working;
+      deleteSelected.textContent = selected.size ? 'Delete selected (' + selected.size + ')' : 'Delete selected';
+
+      // pending uploads
+      if (!pending.length) {
+        pendingEl.innerHTML = '';
+      } else {
+        pendingEl.innerHTML = '<div class="img-grid video-grid">' + pending.map((f, i) =>
+          '<div class="img-item video-item" style="cursor:default">'
+          + '<video src="' + f.url + '#t=0.5" preload="metadata" muted playsinline></video>'
+          + '<span class="play">' + ICONS.play + '</span>'
+          + '<span class="size">' + mb(f.file.size) + '</span>'
+          + (working ? '' : '<button type="button" class="remove-pending" data-index="' + i + '" aria-label="Remove ' + escapeHtml(f.file.name) + '">×</button>')
+          + '</div>'
+        ).join('') + '</div>';
+        pendingEl.querySelectorAll('.remove-pending').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const [removed] = pending.splice(Number(btn.dataset.index), 1);
+            URL.revokeObjectURL(removed.url);
+            render();
+          });
+        });
+      }
+      uploadButton.disabled = !pending.length || working || loading;
+      uploadButton.textContent = working ? 'Uploading…'
+        : pending.length ? 'Upload ' + plural(pending.length) : 'Upload';
+    }
+
+    function addFiles(fileList) {
+      const files = Array.from(fileList);
+      const wrongType = files.filter((f) => !TYPES.test(f.type));
+      const tooBig = files.filter((f) => TYPES.test(f.type) && f.size > MAX_MB * 1024 * 1024);
+      const ok = files.filter((f) => TYPES.test(f.type) && f.size <= MAX_MB * 1024 * 1024);
+
+      const problems = [];
+      if (wrongType.length) problems.push(plural(wrongType.length) + ' skipped — only MP4, WEBM, MOV or OGG are allowed.');
+      if (tooBig.length) problems.push(plural(tooBig.length) + ' skipped — each video must be ' + MAX_MB + ' MB or smaller.');
+      if (problems.length) showError(errorBox, problems.join(' ')); else clearError(errorBox);
+
+      ok.forEach((file) => pending.push({ file, url: URL.createObjectURL(file) }));
+      render();
+    }
+
+    function setProgress(fraction) {
+      const show = fraction !== null;
+      progress.classList.toggle('visible', show);
+      progressText.classList.toggle('visible', show);
+      if (!show) return;
+      const pct = Math.round(fraction * 100);
+      progressBar.style.width = pct + '%';
+      progressText.textContent = pct < 100 ? 'Uploading… ' + pct + '%' : 'Processing…';
+    }
+
+    /** XHR instead of fetch so large videos show real upload progress. */
+    function uploadWithProgress(url, form) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.withCredentials = true;
+        xhr.upload.addEventListener('progress', (e) => { if (e.lengthComputable) setProgress(e.loaded / e.total); });
+        xhr.addEventListener('load', () => {
+          if (xhr.status === 401) {
+            window.location.href = '/adminLogin.html';
+            return reject(new Error('Not authenticated'));
+          }
+          let body = null;
+          try { body = JSON.parse(xhr.responseText); } catch (_) { /* not JSON */ }
+          if (xhr.status >= 200 && xhr.status < 300) return resolve(body);
+          let message = (body && body.message) || 'Upload failed. Please try again.';
+          if (xhr.status === 413) message = 'That upload is too large. Each video must be ' + MAX_MB + ' MB or smaller.';
+          reject(new Error(message));
+        });
+        xhr.addEventListener('error', () => reject(new Error('Upload failed — check your connection and try again.')));
+        xhr.send(form);
+      });
+    }
+
+    async function upload() {
+      if (!project || !pending.length) return;
+      working = true;
+      clearError(errorBox);
+      setProgress(0);
+      render();
+      const form = new FormData();
+      pending.forEach((f) => form.append('files', f.file));
+      try {
+        videos = await uploadWithProgress(base(), form);
+        clearPendingVideos();
+      } catch (err) {
+        if (err.message !== 'Not authenticated') showError(errorBox, err.message);
+      } finally {
+        working = false;
+        setProgress(null);
+        render();
+      }
+    }
+
+    async function removeSelected() {
+      if (!project || !selected.size) return;
+      const n = selected.size;
+      if (!window.confirm('Delete ' + plural(n) + ' from this project?')) return;
+      working = true;
+      clearError(errorBox);
+      render();
+      try {
+        videos = await api(base(), {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: Array.from(selected) })
+        });
+        selected = new Set();
+      } catch (err) {
+        if (err.message !== 'Not authenticated') showError(errorBox, err.message);
+      } finally {
+        working = false;
+        render();
+      }
+    }
+
+    function openPreview(url) {
+      player.src = url;
+      previewModal.classList.add('open');
+      player.play().catch(() => { /* autoplay may be blocked; controls are there */ });
+    }
+
+    function closePreview() {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+      previewModal.classList.remove('open');
+    }
+
+    selectAll.addEventListener('click', () => {
+      selected = selected.size === videos.length ? new Set() : new Set(videos.map((v) => v.id));
+      render();
+    });
+    deleteSelected.addEventListener('click', removeSelected);
+    uploadButton.addEventListener('click', upload);
+
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener('change', () => {
+      if (input.files.length) addFiles(input.files);
+      input.value = '';
+    });
+    ['dragenter', 'dragover'].forEach((evt) => zone.addEventListener(evt, (e) => {
+      e.preventDefault(); zone.classList.add('drag');
+    }));
+    ['dragleave', 'drop'].forEach((evt) => zone.addEventListener(evt, (e) => {
+      e.preventDefault(); zone.classList.remove('drag');
+    }));
+    zone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files.length && !working) addFiles(e.dataTransfer.files);
+    });
+
+    $('videosCloseBtn').addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    $('videoPreviewCloseBtn').addEventListener('click', closePreview);
+    previewModal.addEventListener('click', (e) => { if (e.target === previewModal) closePreview(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (previewModal.classList.contains('open')) closePreview();
+      else if (modal.classList.contains('open')) close();
+    });
+
+    return { open };
+  })();
 
   // ---- Escape closes the top-most open modal ----
   document.addEventListener('keydown', (e) => {
